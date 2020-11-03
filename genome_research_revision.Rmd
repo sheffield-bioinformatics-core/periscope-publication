@@ -75,16 +75,16 @@ gpairs_lower <- function(g){
 }
 
 #==============================
-# Add smooting to ggpairs
+# Add regression line to ggpairs & R/p values
 #==============================
 
 add_stat_smooth <- function(data, mapping, ...){
   p <- ggplot(data = data, mapping = mapping) + 
    
-    geom_point() +
+   geom_point() +
      stat_smooth(method=lm, fill="grey70", color="grey50", ...)+
-    stat_cor(geom="text",size=3,method="pearson",fill='#FFFFFF',color='#4D4845',alpha=0.3,vjust=0.92,label.padding=unit(0.2, "lines"),aes(label=..rr.label..))+
-                stat_cor(geom="text",size=3,method="pearson",fill='#FFFFFF',color='#4D4845',alpha=0.3,vjust=0.92,label.padding=unit(0.2, "lines"),aes(label=..p..*6),vjust=1.1)+
+    stat_cor(geom="text",size=3,method="pearson",fill='#FFFFFF',color='#4D4845',alpha=1,label.y=y,vjust=1,label.padding=unit(0.2, "lines"),aes(label=paste("R",as.character(..r..),sep="~`=`~")))+
+    stat_cor(geom="text",size=3,method="pearson",fill='#FFFFFF',color='#4D4845',alpha=1,label.y=y,label.padding=unit(0.2, "lines"),aes(label=paste("p",as.character(..p..*n),sep="~`=`~")),vjust=2.1)+
     theme(
      
     )
@@ -126,10 +126,12 @@ This R markdown document is provided to re-create most of the figures and analys
 
 
 ```{r figure_2_sub_genomic_rna , fig.width=8.25, fig.height=11.75, echo=F,warnings=F,message=F}
-setwd("/home/md1mpar/Documents/projects/periscope/genome_research_revision/summary_data/")
 
-sg = read.csv("supplementary_file_1_cannonical_orf_counts.csv")
 
+
+#==============================
+# Change column names for nicer display
+#==============================
 
 column_names <- c(
                     'sgRPTg_HQ' = 'HQ sgRNA Reads per\n1000 Genomic Reads',
@@ -144,9 +146,19 @@ column_names <- c(
                     'sgRNA_LLQ_count' = 'sgRNA LLQ\nRaw Count'
                     )
 
-## Sheffield ARTIC nanopore Cohort
+setwd("/home/md1mpar/Documents/projects/periscope/genome_research_revision/summary_data/")
 
-a = ggplot(sg%>%filter(orf!="ORF1a")%>%filter(orf!="ORF10")%>%filter(orf!="N*"),aes(reorder(orf,-gRNA_count,median),gRNA_count))+
+#==============================
+# Sheffield ARTIC nanopore Cohort
+#==============================
+
+sg = read.csv("supplementary_file_1_cannonical_orf_counts.csv")
+
+# We exclude ORF1a as it does not produce sgRNA and N* which is the non-canonical sgRNA produced in KR mutants
+
+sg = sg %>% filter(orf!="ORF1a") %>% filter(orf!="N*")
+
+b = ggplot(sg,aes(reorder(orf,-gRNA_count,median),gRNA_count))+
   geom_boxplot(color=navy)+
   ft_theme()+
   scale_y_continuous("gRNA Reads")+
@@ -160,7 +172,7 @@ a = ggplot(sg%>%filter(orf!="ORF1a")%>%filter(orf!="ORF10")%>%filter(orf!="N*"),
   scale_color_manual("Quality",values=c(navy,navy,grey))+
   scale_x_discrete("ORF")
 
-b = ggplot(sg%>%filter(orf!="ORF1a")%>%filter(orf!="ORF10")%>%filter(orf!="N*")%>%filter(orf!="ORF10"),aes(reorder(orf,-gRHPT,median),gRHPT))+
+c = ggplot(sg,aes(reorder(orf,-gRHPT,median),gRHPT))+
   geom_boxplot(color=navy)+
   ft_theme()+
   scale_y_continuous("gRPHT")+
@@ -174,9 +186,9 @@ b = ggplot(sg%>%filter(orf!="ORF1a")%>%filter(orf!="ORF10")%>%filter(orf!="N*")%
   scale_color_manual("Quality",values=c(navy,navy,grey))+
   scale_x_discrete("ORF")
 
-m=melt(sg%>%filter(orf!="ORF1a")%>%filter(orf!="ORF10")%>%filter(orf!="N*")%>%filter(!is.na(sgRNA_HQ_count))%>%select(sample,orf,sgRNA_HQ_count,sgRNA_LQ_count,sgRNA_LLQ_count))
+m=melt(sg%>%select(sample,orf,sgRNA_HQ_count,sgRNA_LQ_count,sgRNA_LLQ_count))
 
-c = ggplot(m,aes(x=reorder_within(orf,-value,variable,median),value,color=variable))+
+d = ggplot(m,aes(x=reorder_within(orf,-value,variable,median),value,color=variable))+
   geom_boxplot()+
   ft_theme()+
   scale_y_continuous("sgRNA Reads (Log10)",trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,1000,10000),expand=c(0,0.1))+
@@ -195,11 +207,9 @@ c = ggplot(m,aes(x=reorder_within(orf,-value,variable,median),value,color=variab
   scale_x_reordered("ORF")+
   coord_cartesian(clip = "off") 
 
-m=melt(sg%>%filter(orf!="ORF1a")%>%filter(orf!="N*")%>%filter(orf!="ORF10")%>%filter(!is.na(sgRPHT_HQ))%>%select(sample,orf,sgRPHT_HQ,sgRPHT_LQ,sgRPHT_LLQ))
+m=melt(sg%>%filter(!is.na(sgRPHT_HQ))%>%select(sample,orf,sgRPHT_HQ,sgRPHT_LQ,sgRPHT_LLQ))
 
-
-
-d = ggplot(m,aes(x=reorder_within(orf,-value,variable,median),value,color=variable))+
+e = ggplot(m,aes(x=reorder_within(orf,-value,variable,median),value,color=variable))+
   geom_boxplot()+
   ft_theme()+
  scale_y_continuous("sgRPHT (Log10)",trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,1000,10000),expand=c(0,0.1))+
@@ -220,7 +230,7 @@ d = ggplot(m,aes(x=reorder_within(orf,-value,variable,median),value,color=variab
   scale_x_reordered("ORF")+
   coord_cartesian(clip = "off") 
 
-m=melt(sg%>%filter(orf!="N*")%>%filter(orf!="ORF1a")%>%filter(!is.na(sgRPTg_HQ))%>%select(sample,orf,sgRPTg_HQ,sgRPTg_LQ))
+m=melt(sg %>% select(sample,orf,sgRPTg_HQ,sgRPTg_LQ))
 
 m$orf = str_replace(m$orf,"ORF10","ORF10*")
 m$location="SHEF"
@@ -231,7 +241,7 @@ g$location="GLAS"
 all_loc=rbind(m,g)
 all_loc$location<- factor(all_loc$location,levels=c("SHEF","GLAS"))
 
-e = ggplot(all_loc,aes(x=reorder_within(orf,-value,variable,median),value,color=location))+
+a = ggplot(all_loc,aes(x=reorder_within(orf,-value,variable,median),value,color=location))+
   geom_boxplot()+
   ft_theme()+
   scale_y_continuous("sgRPTg (Log10)",trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,1000,10000),expand=c(0,0.1))+
@@ -253,7 +263,13 @@ e = ggplot(all_loc,aes(x=reorder_within(orf,-value,variable,median),value,color=
   scale_x_reordered("ORF")+
   coord_cartesian(clip = "off") 
 
-## In Vitro Data - comparisson with Illumina
+#==============================
+# In Vitro Data - comparisson with Illumina
+#==============================
+
+#==============================
+# Illumina
+#==============================
 
 cell_illumina = read.csv("supplementary_file_5_illumina_in_vitro.csv")
 
@@ -285,6 +301,11 @@ illumina_normalised = ggplot(cell_illumina%>%filter(orf!="ORF10") %>% filter(orf
   )+
   scale_color_manual("ORF",values=c(navy,coral,orange,yellow,purple,aqua,green,grey,"black"))
 
+
+#==============================
+# ONT
+#==============================
+
 cell_ont = read.csv("supplementary_file_6_ont_in_vitro.csv")
 
 cell_ont = cell_ont %>% separate(sample,c("line","virus","time","s"),sep="_")
@@ -315,6 +336,10 @@ ont_normalised = ggplot(cell_ont%>%filter(orf!="ORF10") %>% filter(orf!='ORF1a')
   )+
   scale_color_manual("ORF",values=c(navy,coral,orange,yellow,purple,aqua,green,grey,"black"))
 
+#==============================
+# Comparisson Plot
+#==============================
+
 ill=cell_illumina%>%filter(orf!="ORF10") %>% filter(orf!='ORF1a') %>% group_by(line,virus,time) %>% select(line,virus,time,sgRPHT) %>% summarise(sum=sum(sgRPHT))
 
 ill$class="Illumina Metagenomic"
@@ -327,7 +352,7 @@ ont$sum_norm=normalize(ont$sum)
 
 all=rbind(ill,ont)
 
-all_plot = ggplot(all,aes(time,sum_norm,group=class,color=class))+
+f = ggplot(all,aes(time,sum_norm,group=class,color=class))+
   geom_point()+
   geom_line()+
   facet_grid(virus~line)+
@@ -347,26 +372,16 @@ all_plot = ggplot(all,aes(time,sum_norm,group=class,color=class))+
 
 
 
-
-# col1a = ggarrange(a,b,labels=c("","B"),nrow=1)
-# col1 = ggarrange(col1a,c,d,e,labels = c("","C","D","E"),nrow=4,heights=c(1,1,1,1))
-# col2 = ggarrange(all,ont_normalised,illumina_normalised,labels=c('F','G','H'),ncol=1,nrow=3,heights=c(1,0.7,0.7))
-# 
-# figure2 = ggarrange(col1,col2,widths=c(0.8,1))
-# figure2
-
-
-
 legend <- get_legend(illumina_normalised)
 illumina_normalised = illumina_normalised+theme(legend.position = "none")
 
-col1a = ggarrange(a,b,labels=c("B","C"),nrow=1)
-col1 = ggarrange(col1a,c,d,labels = c("","D","E"),nrow=3,heights=c(1,1,1,1))
-col2 = ggarrange(all_plot,ont_normalised,illumina_normalised,legend,labels=c('F','G','',''),ncol=1,nrow=4,heights=c(0.9,0.9,0.9,0.15))
+col1_row1 = ggarrange(b,c,labels=c("B","C"),nrow=1)
+col1 = ggarrange(col1_row1,d,e,labels = c("","D","E"),nrow=3,heights=c(1,1,1,1))
+col2 = ggarrange(f,ont_normalised,illumina_normalised,legend,labels=c('F','G','',''),ncol=1,nrow=4,heights=c(0.9,0.9,0.9,0.15))
 
 row2 = ggarrange(col1,col2,widths=c(0.8,1))
-figure2_alt = ggarrange(e,row2,nrow=2,heights=c(0.4,1),labels=c("A",""))
-figure2_alt
+figure2 = ggarrange(a,row2,nrow=2,heights=c(0.4,1),labels=c("A",""))
+figure2
 ```
 
 
@@ -377,28 +392,18 @@ figure2_alt
 ```{r figure_3_technical_replicates , fig.width=8.25, fig.height=11.75, echo=F,warnings=F,message=F}
 
 
-add_stat_smooth <- function(data, mapping, ...){
-  
-  print(n)
-  p <- ggplot(data = data, mapping = mapping) + 
-   
-    geom_point() +
-     stat_smooth(method=lm, fill="grey70", color="grey50", ...)+
-    stat_cor(geom="text",size=3,method="pearson",fill='#FFFFFF',color='#4D4845',alpha=1,label.y=y,vjust=1,label.padding=unit(0.2, "lines"),aes(label=paste("R",as.character(..r..),sep="~`=`~")))+
-    stat_cor(geom="text",size=3,method="pearson",fill='#FFFFFF',color='#4D4845',alpha=1,label.y=y,label.padding=unit(0.2, "lines"),aes(label=paste("p",as.character(..p..*n),sep="~`=`~")),vjust=2.1)+
-    theme(
-     
-    )
-    # ggpubr::stat_regline_equation(geom="label",color="grey18",aes(label =  paste(..rr.label..)),fill='white',color=grey,size=3,alpha=0.5)
-  p
-}
 
-
-# repeats
+#==============================
+# Technical Replicates 1
+#==============================
 setwd("/home/md1mpar/Documents/projects/periscope/genome_research_revision/summary_data/")
 sg = read.csv("supplementary_file_1_cannonical_orf_counts.csv")
+
 rep=read.table("supplementary_file_4_repeats.csv",sep=",",header=T)
-rep$orf <- factor(rep$orf,levels=c("N*","ORF1a","S","ORF3a","E","M","ORF6","ORF7a","ORF8","N","ORF10"))
+
+rep = rep %>% filter(orf != "ORF1a")
+
+rep$orf <- factor(rep$orf,levels=c("N*","S","ORF3a","E","M","ORF6","ORF7a","ORF8","N","ORF10"))
 rep$sample <- factor(rep$sample,levels=c("SHEF-C2AC0","repeat1","repeat2","repeat3","SHEF-C1F86","repeat4","repeat5","repeat6"))
 rep$sample =  str_replace(rep$sample,"repeat","Repeat ")
 rep$sample =  str_replace(rep$sample,"-","\n")
@@ -407,8 +412,6 @@ rep$class = ifelse(rep$sample=="SHEF-C2AC0","Superscript","Lunarscript")
 rep$class = ifelse(rep$sample=="repeat1","Superscript",rep$class)
 rep$class = ifelse(rep$sample=="repeat2","Superscript",rep$class)
 rep$class = ifelse(rep$sample=="repeat3","Superscript",rep$class)
-
-
 
 rep$class = factor(rep$class,levels=c("Superscript","Lunarscript"))
 
@@ -422,7 +425,7 @@ a=ggpairs(rep%>%
           filter(sample %in% c("SHEF\nC2AC0","Repeat 1","Repeat 2","Repeat 3"))%>%
           select(sample,orf,sgRPTg_HQ)%>%
           spread(sample,sgRPTg_HQ)
-        ,columns=c(2,3,4,5),xlab="sgRPTg",ylab="sgRPTg",axisLabels = "show" ,lower = list(mapping = aes(color = orf),continuous = add_stat_smooth ),upper=list(continuous='blank'),diag  = list(continuous = "blankDiag"))+
+        ,columns=c(2,3,4,5),xlab="sgRPTg (High Quality)",ylab="sgRPTg (High Quality)",axisLabels = "show" ,lower = list(mapping = aes(color = orf),continuous = add_stat_smooth ),upper=list(continuous='blank'),diag  = list(continuous = "blankDiag"))+
   ft_theme()+
  
   theme(
@@ -436,11 +439,18 @@ a=ggpairs(rep%>%
          strip.text.x = element_text(face = "bold",colour = '#4D4845'),
         strip.text.y = element_text(face = "bold",colour = '#4D4845'),
         axis.text.x=element_text(angle=45,hjust=1))+scale_color_manual("ORF",values=c(navy,coral,green,purple,yellow,orange,grey,aqua,"black"))+
-scale_x_continuous("sgRPTg")+
-scale_y_continuous("sgRPTg")+
+scale_x_continuous("sgRPTg (High Quality)")+
+scale_y_continuous("sgRPTg (High Quality)")+
   coord_cartesian(ylim=c(0,120))
 
 a=gpairs_lower(a)
+
+
+#==============================
+# Technical Replicates 2
+#==============================
+
+
 y=40
 b=ggpairs(rep%>%
           filter(orf!="ORF1a")%>%
@@ -449,7 +459,7 @@ b=ggpairs(rep%>%
           filter(sample %in% c("SHEF\nC1F86","Repeat 4","Repeat 5","Repeat 6"))%>%
           select(sample,orf,sgRPTg_HQ)%>%
           spread(sample,sgRPTg_HQ)
-         ,columns=c(2,3,4,5),xlab="sgRPTg",ylab="sgRPTg",axisLabels = "show" ,lower = list(mapping = aes(color = orf),continuous = add_stat_smooth),upper=list(continuous='blank'),diag  = list(continuous = "blankDiag"))+
+         ,columns=c(2,3,4,5),xlab="sgRPTg (High Quality)",ylab="sgRPTg (High Quality)",axisLabels = "show" ,lower = list(mapping = aes(color = orf),continuous = add_stat_smooth),upper=list(continuous='blank'),diag  = list(continuous = "blankDiag"))+
   ft_theme()+
   theme(panel.background=element_rect(fill="grey97",color="white"),
 panel.spacing.x=unit(0.1, "lines"),
@@ -459,13 +469,16 @@ legend.position = "None",
         strip.text.x = element_text(face = "bold",colour = '#4D4845'),
         strip.text.y = element_text(face = "bold",colour = '#4D4845'),
         axis.text.x=element_text(angle=45,hjust=1))+scale_color_manual("ORF",values=c(navy,coral,green,purple,yellow,orange,grey,aqua,"black"))+
-  scale_x_continuous("sgRPTg")+
-scale_y_continuous("sgRPTg")+
+  scale_x_continuous("sgRPTg (High Quality)")+
+scale_y_continuous("sgRPTg (High Quality)")+
   coord_cartesian(ylim=c(0,40))
 
 b=gpairs_lower(b)   
 
+#==============================
 # Downsampling
+#==============================
+
 y=log10(11000)
 down=read.csv("supplementary_file_3_downsampling.csv")
 down$reads <- factor(down$reads,levels=c("5000","10000","50000","100000","200000","500000"))
@@ -474,25 +487,25 @@ down$orf <- factor(down$orf,levels=c("N*","ORF1a","S","ORF3a","E","M","ORF6","OR
 spread_down=down%>%
     filter(orf!="ORF1a")%>%
     filter(orf!="N*")%>%
-    filter(orf!="ORF10")%>%
-   
-    select(sample,reads,orf,sgRPTg_ALL)%>%
-    spread(reads,sgRPTg_ALL) %>%
+    select(sample,reads,orf,sgRPTg_HQ)%>%
+    spread(reads,sgRPTg_HQ) %>%
   replace_na(list("5000" = 0)) %>%
     replace_na(list("10000" = 0)) %>%
     replace_na(list("50000" = 0)) %>%
     replace_na(list("100000" = 0)) %>%
     replace_na(list("200000" = 0)) %>%
   replace_na(list("500000" = 0))
+
 n=15
-c = ggpairs(spread_down
-        ,columns=c(3,4,5,6,7,8),xlab="sgRPTg (Log10)",ylab="sgRPTg (Log10)",legend = c(2,1) ,lower = list(mapping = aes(color = orf),continuous = add_stat_smooth,axisLabels = "show"),diag  = list(continuous = "blankDiag"),upper  = list(continuous = "blank"))+
+
+g = ggpairs(spread_down
+        ,columns=c(3,4,5,6,7,8),xlab="sgRPTg (High Quality - Log10)",ylab="sgRPTg (High Quality - Log10)",legend = c(2,1) ,lower = list(mapping = aes(color = orf),continuous = add_stat_smooth,axisLabels = "show"),diag  = list(continuous = "blankDiag"),upper  = list(continuous = "blank"))+
   ft_theme()+
-  scale_x_continuous("sgRPTg (Log10)",trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,1000,10000))+
-  scale_y_continuous("sgRPTg (Log10)",trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,1000,10000))+
+  scale_x_continuous("sgRPTg High Quality (Log10)",trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,1000,10000))+
+  scale_y_continuous("sgRPTg High Quality (Log10)",trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,1000,10000))+
   theme(panel.background=element_rect(fill="grey97",color="white"),
         axis.title = element_text(face = "bold",colour = '#4D4845'),
-        legend.background = element_rect(fill="grey97",color="white"),
+
         legend.margin = margin(t = 3, r = 2, b = 2, l = 2, unit = "pt"),
         legend.position="bottom",
          panel.spacing.x=unit(0.1, "lines"),
@@ -503,12 +516,18 @@ c = ggpairs(spread_down
   scale_color_manual("ORF",values=c(navy,coral,green,purple,yellow,orange,grey,aqua,"black"))+
   coord_cartesian(ylim = c(1,10000))
 
-c=gpairs_lower(c)
+g = gpairs_lower(g)
+
+
+#==============================
 # PCA Analysis
+#==============================
 
+
+# Run information
 runs=read.csv("supplementary_file_8_sample_run_info.csv")
-# names(runs)=c("SpecNo","sample","nanopore","run","barcode","primer")
 
+# CT Values
 ct = read.csv("supplementary_file_9_sample_ect.csv")
 
 all=merge(sg,runs)
@@ -517,7 +536,8 @@ all = merge(all,ct,all=T)
 all$primer <- factor(all$primer,levels=c("V3","V1"))
 all = all %>% separate(nanopore,c("date","time","device","flow_cell","id"),sep="_")
 
-fa=as.data.frame(all %>% filter(orf!="ORF10") %>% filter(orf!="ORF1a") %>% dplyr::select(sample,orf,sgRPTg_HQ,sgRPTg_LQ)) %>% mutate(sgRPTg=sgRPTg_HQ+sgRPTg_LQ)
+
+fa=as.data.frame(all %>% filter(orf!="ORF1a") %>% dplyr::select(sample,orf,sgRPTg_HQ,sgRPTg_LQ)) %>% mutate(sgRPTg=sgRPTg_HQ+sgRPTg_LQ)
 fa=fa%>% group_by(orf) %>% mutate(sgRPTg=normalize(sgRPTg))
 
 s = fa %>%select(sample,orf,sgRPTg) %>% spread(orf,sgRPTg)
@@ -525,15 +545,19 @@ s = as.data.frame(s)
 s <- s %>% mutate_all(funs(replace_na(.,0)))
 sx=s[2:10]-rowMeans(s[2:10])
 row.names(s)=s$sample
-labels = unique(as.data.frame(all %>% filter(orf!="ORF10") %>% filter(orf!="ORF1a") %>% dplyr::select(sample,id,primer,device,mapped_reads,E_CT_normalised)))
+labels = unique(as.data.frame(all %>% filter(orf!="ORF1a") %>% dplyr::select(sample,id,primer,device,mapped_reads,E_CT_normalised)))
 
 pca.res=PCA(sx, scale.unit = F, graph=F)
 
 
-d = fviz_pca_ind(pca.res,geom.ind = "")+
-  ft_theme()+geom_point(alpha=0.5,aes(color=labels$primer))+
+#==============================
+# Primers
+#==============================
+
+c = fviz_pca_ind(pca.res,geom.ind = "")+
+  ft_theme()+
+  geom_point(alpha=0.5,aes(color=labels$primer))+
   scale_color_manual("Artic Primers",values=c(navy,coral))+
-  scale_fill_manual("KR/RG Variant",values=c(navy,coral))+ggtitle("")+
   theme(
     legend.title = element_blank(),
     legend.text = element_text(size=8),
@@ -543,12 +567,32 @@ d = fviz_pca_ind(pca.res,geom.ind = "")+
   )
 
 
-e = fviz_pca_ind(pca.res,col.ind = as.factor(labels$id),geom="")+theme(legend.position = "None")+geom_point(alpha=0.5,shape=19,aes(color=labels$id))+ft_theme()+scale_color_viridis("Run",discrete = T,option = "magma")+scale_fill_viridis("Run",discrete = T,option = "magma")+ggtitle("")+theme(legend.position = "None",   plot.title = element_blank())
+#==============================
+# Run
+#==============================
+
+d = fviz_pca_ind(pca.res,col.ind = as.factor(labels$id),geom="")+
+   ft_theme()+
+  theme(
+    legend.position = "None",
+    plot.title = element_blank()
+    )+
+  geom_point(alpha=0.5,shape=19,aes(color=labels$id))+
+  scale_color_viridis("Run",discrete = T,option = "magma")+
+  scale_fill_viridis("Run",discrete = T,option = "magma")
+
+#==============================
+# Mapped Reads
+#==============================
   
-g = fviz_pca_ind(pca.res, alpha.var=0,geom = c(""))+ft_theme()+ggtitle("")+geom_point(alpha=0.5,aes(color=labels$mapped_reads/100000))+scale_color_gradientn("Mapped Read Count/100k",colors=c(navy,yellow,coral))+theme(legend.text = element_text(angle=45,hjust=1))+
+e = fviz_pca_ind(pca.res, alpha.var=0,geom = c(""))+
+  ft_theme()+
+  ggtitle("")+
+  geom_point(alpha=0.5,aes(color=labels$mapped_reads/100000))+
+  scale_color_gradientn("Mapped Read Count/100k",colors=c(navy,yellow,coral))+
   theme(
     legend.title = element_blank(),
-    legend.text = element_text(size=8),
+    legend.text = element_text(angle=45,hjust=1,size=8),
     plot.title = element_blank(),
     legend.key.size = unit(0.5, "cm"),
     legend.key.height = unit(0.1, "cm"),
@@ -556,9 +600,12 @@ g = fviz_pca_ind(pca.res, alpha.var=0,geom = c(""))+ft_theme()+ggtitle("")+geom_
     legend.position = "bottom"
   )
 
+#==============================
+# ECT
+#==============================
 
 
-h = fviz_pca_ind(pca.res, alpha.var=0,geom = c(""))+
+f = fviz_pca_ind(pca.res, alpha.var=0,geom = c(""))+
   ft_theme()+
   ggtitle("")+
   geom_point(alpha=0.5,aes(color=labels$E_CT_normalised))+scale_color_gradientn("Normalised Ect",colors=c(navy,yellow,coral))+theme(legend.text = element_text(angle=45,hjust=1))+
@@ -574,10 +621,10 @@ h = fviz_pca_ind(pca.res, alpha.var=0,geom = c(""))+
   )
 
 row1=ggarrange(ggmatrix_gtable(a),ggmatrix_gtable(b),labels=c("A","B"))
-row2 = ggarrange(d,e,g,h,labels=c("C","D","E","F"),ncol=4,nrow=1)
-row3= ggarrange(ggmatrix_gtable(c),labels=c("G"))
-figure = ggarrange(row1,row2,row3,nrow=3,ncol=1,heights=c(0.5,0.4,1))
-figure
+row2 = ggarrange(c,d,e,f,labels=c("C","D","E","F"),ncol=4,nrow=1)
+row3= ggarrange(ggmatrix_gtable(g),labels=c("G"))
+figure3 = ggarrange(row1,row2,row3,nrow=3,ncol=1,heights=c(0.5,0.4,1))
+figure3
 
 
 
@@ -611,22 +658,12 @@ novel=rbind(novel_glas,novel_shef)
 
 novel=novel %>% filter(pos > 50)
 novel$start=50
-# ggplot(novel%>%filter(pos>500)%>%group_by(sample,pos),aes(x=pos))+
-#    geom_histogram(binwidth = 100,color=navy,fill=navy)+
-#     scale_y_continuous("Samples with nsgRNA Evidence")+
-#     scale_x_continuous("Genome Position",limits=c(500,30000))+
-#     ft_theme()+
-#     theme(legend.position = "None")
-
-# interactions = read.table("/home/md1mpar/Documents/projects/covid19/quality_paper/rna_interactions_bed.tsv",sep="\t",head=T)
-# interactions$y=0.05
 
 summary = novel%>%mutate(total=(as.numeric(as.character(nsgRNA_HQ_count))+ as.numeric(as.character(nsgRNA_LQ_count))))%>%group_by(start,y,location,pos)%>%summarise(n=n(),m=sum(total))
 
 full=ggplot(mapping=aes(x=start,y=y,xend=pos,yend=y))+
   geom_curve(data=summary%>%filter(location=="SHEF")%>%filter(n>5),lineend = "round",curvature=-0.3,color=grey,size=0.1)+
   geom_curve(data=summary%>%filter(location=="GLAS")%>%filter(n>3),lineend = "round",curvature=0.3,color=grey,size=0.1)+
-  # geom_curve(data=interactions,curvature=-0.4,color=green)+
   scale_alpha_continuous("Number of Samples")+
   ft_theme()+
   scale_x_continuous("Position")+
@@ -766,7 +803,7 @@ img1 <- readPNG("images/figure_4_reads.png")
 reads = ggplot() + 
     background_image(img1) +
     # This ensures that the image leaves some space at the edges
-    theme(plot.margin = margin(t=1, l=1, r=1, b=1, unit = "cm"))
+    theme(plot.margin = margin(t=0.5, l=0.5, r=0.5, b=0.5, unit = "cm"))
 
 orfs = c("S","ORF3a","E","M","ORF6","ORF7a","N","27544")
 counts = c(75,5,19,282,84,16,751,177)
@@ -786,8 +823,9 @@ counts = ggplot(nov,aes(reorder(orfs,-counts),counts,fill=orfs))+
 
 
 
-
-## In Vitro Data - comparisson with Illumina - for plotting below
+#==============================
+# In Vitro Data - Illumnina
+#==============================
 
 cell_illumina = read.csv("supplementary_file_5_illumina_in_vitro.csv")
 
@@ -817,6 +855,11 @@ illumina_normalised = ggplot(cell_illumina %>% filter(orf!='ORF1a') %>% filter(o
   )+
   scale_color_manual("ORF",values=c(navy,coral,orange,yellow,purple,aqua,green,grey,"black"))
 
+
+#==============================
+# In Vitro Data - ONT
+#==============================
+
 cell_ont = read.csv("supplementary_file_6_ont_in_vitro.csv")
 
 cell_ont = cell_ont %>% separate(sample,c("line","virus","time","s"),sep="_")
@@ -845,18 +888,22 @@ ont_normalised = ggplot(cell_ont %>% filter(orf!='ORF1a') %>% filter(orf!='ORF10
   )+
   scale_color_manual("ORF",values=c(navy,coral,orange,yellow,purple,aqua,green,grey,"black"))
 
-ill=cell_illumina %>% filter(orf!='ORF1a') %>% filter(orf!='ORF10') %>% group_by(line,virus,time) %>% select(line,virus,time,sgRPHT) %>% summarise(sum=sum(sgRPHT))
+#==============================
+# In Vitro Data - All
+#==============================
+
+
+ill=cell_illumina %>% filter(orf!='ORF1a') %>% group_by(line,virus,time) %>% select(line,virus,time,sgRPHT) %>% summarise(sum=sum(sgRPHT))
 
 ill$class="Illumina\nMetagenomic"
 ill$sum_norm=normalize(ill$sum)
 
-ont=cell_ont %>% filter(orf!='ORF1a') %>% filter(orf!='ORF10') %>% group_by(line,virus,time) %>% select(line,virus,time,sgRPHT_HQ,sgRPHT_LQ) %>% summarise(sum=sum(sgRPHT_HQ+sgRPHT_LQ))
+ont=cell_ont %>% filter(orf!='ORF1a') %>% group_by(line,virus,time) %>% select(line,virus,time,sgRPHT_HQ,sgRPHT_LQ) %>% summarise(sum=sum(sgRPHT_HQ+sgRPHT_LQ))
 
 ont$class="ONT Artic"
 ont$sum_norm=normalize(ont$sum)
 
 all=rbind(ill,ont)
-
 
 
 #==============================
@@ -921,9 +968,9 @@ e=ggplot(all_sum,aes(time,count,group=class,color=class))+
 
 
 
-row2 = ggarrange(reads,counts,labels=c("C","D"),widths=c(1,0.4))
+row2 = ggarrange(reads,counts,labels=c("B","C"),widths=c(1,0.4))
 row4 = ggarrange(e,labels=c("E"),ncol=1)
-ggarrange(full,zoom,bait,row2,row4,labels=c("A",'','B','',''),nrow=5,heights=c(0.5,0.2,0.2,0.65,0.35))
+ggarrange(full,zoom,row2,bait,row4,labels=c("A",'','','D',''),nrow=5,heights=c(0.5,0.3,0.65,0.2,0.35))
 
 ```
 
@@ -937,8 +984,6 @@ setwd("/home/md1mpar/Documents/projects/periscope/genome_research_revision/summa
 #==============================
 # all varinats plot
 #==============================
-
-
 
 variants=read.table("supplementary_file_16_base_counts.csv",sep=",",header=T)
 positions=variants %>% filter(!is.na(value)) %>% filter(variable %in% c("sgRNA_HQ")) %>% group_by(position,value)
@@ -973,11 +1018,6 @@ scale_color_manual("Base",values=c(green,navy,orange,coral))+
   annotate(geom="tile",x="27046",y=0.5,fill=NA,color="white",size=1)+
   annotate(geom="tile",x="28256",y=0.5,fill=NA,color="white",size=1)
   
-
-
-
-
-
 
 sg = read.csv("supplementary_file_1_cannonical_orf_counts.csv")
 
@@ -1014,12 +1054,6 @@ c = ggplot(n_variant_m%>%filter(orf!="ORF1a")%>%filter(orf!="N*")%>%filter(orf==
     scale_color_manual("Quality",values=c(navy,coral,green))+
     scale_x_discrete("28256 Variant\nStatus")
 
-
-
-
-
-
-
 #==============================
 # Get images from file
 #==============================
@@ -1048,7 +1082,32 @@ ggarrange(a,row2,row3,labels=c("A","",""),nrow=3,heights=c(1,0.9,0.9))
 
 
 # Supplementary Figures
-#### Supplementary Figure S1 - Mapped Read Counts
+#### Supplementary Figure S1 - Size of reads in SHEF ONT Artic data broken down by periscope assigned class in a representituve sample (SHEF-BFDBE)
+
+```{r supp_figure_s1_read_lengths , fig.width=7, fig.height=4, echo=F,warnings=F,message=F}
+
+#==============================
+# Read lengths plot
+#==============================
+
+setwd("/home/md1mpar/Documents/projects/periscope/genome_research_revision/summary_data")
+read_lengths=read.csv("supplementary_file_15_read_lengths.csv",sep="\t")
+
+ggplot(read_lengths,aes(length,color=class,fill=class))+
+  geom_density(alpha=0.5)+
+  ft_theme()+
+  theme(
+    panel.background=element_rect(fill="grey97",color="white")
+  )+
+  scale_x_continuous("Read Length",limits=c(0,1000))+
+  scale_y_continuous("Density")+
+  scale_color_manual("Read Class",values=c(navy,coral))+
+  scale_fill_manual("Read Class",values=c(navy,coral))
+
+```
+
+
+#### Supplementary Figure S4 - Mapped Read Counts
 
 ```{r supp_figure_s4_mapped_reads , fig.width=10, fig.height=5, echo=F,warnings=F,message=F}
 
@@ -1147,8 +1206,8 @@ c=ggplot(
   ft_theme()+
   geom_hline(color=grey,yintercept = 200000)+
   scale_y_log10("Mapped Read Count",limits=c(1,10000000))+
-  scale_x_discrete("Sequencing Centre")+
-  scale_color_manual("Sequencing Centre",values=c(navy,coral))+
+  scale_x_discrete("Sequencing Technoloy")+
+  scale_color_manual("Sequencing Technology",values=c(navy,coral))+
   theme(
     legend.position = "none",
    panel.background=element_rect(fill="grey97",color="white"),
@@ -1190,27 +1249,312 @@ ggarrange(patients,cell_lines,labels=c("A","B"),widths =c(0.9,1) )
 
 
 
-#### Supplementary Figure SX - Size of reads in SHEF ONT Artic data broken down by periscope assigned class in a representituve sample (SHEF-BFDBE)
 
-```{r supp_figure_s1_read_lengths , fig.width=7, fig.height=4, echo=F,warnings=F,message=F}
+#### Supplementary Figure S5 - Sub-Genomic RNA Proportions
+
+```{r supp_figure_s5_sgRNA_proportions , fig.width=7,fig.height=9, echo=F,warnings=F,message=F}
+
+#==============================
+# Clinial Isolates Canonical ONT
+#==============================
+
+setwd("/home/md1mpar/Documents/projects/periscope/genome_research_revision/summary_data/")
+
+shef_canonical_ont = read.csv("supplementary_file_1_cannonical_orf_counts.csv")
+
+shef_canonical_ont$location = "SHEF"
+
+shef_canonical_ont$class = "ONT Artic"
+
+shef_canonical_ont$status = "Canonical"
+
+shef_canonical_ont = shef_canonical_ont %>% filter(orf!='ORF1a') %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(sgRNA_HQ_count+sgRNA_LQ_count))
+
+glas_canonical_ont = read.csv("supplementary_file_7_glasgow_ont.csv")
+
+glas_canonical_ont$location = "GLAS"
+
+glas_canonical_ont$class = "ONT Artic"
+
+glas_canonical_ont$status = "Canonical"
+
+glas_canonical_ont = glas_canonical_ont %>% filter(orf!='ORF1a') %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(sgRNA_HQ_count+sgRNA_LQ_count))
+
+
+#==============================
+# Clinial Isolates Non-Canonical ONT
+#==============================
+
+glas_non_canonical_ont=read.csv("supplementary_file_10_novel_orf_counts_glasgow.csv")
+
+glas_non_canonical_ont$location = "GLAS"
+
+glas_non_canonical_ont$class = "ONT Artic"
+
+glas_non_canonical_ont$status = "Non-canonical"
+
+
+glas_non_canonical_ont = glas_non_canonical_ont %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(nsgRNA_HQ_count + nsgRNA_LQ_count))
+
+shef_non_canonical_ont=read.csv("supplementary_file_2_novel_orf_counts.csv")
+
+shef_non_canonical_ont$location = "SHEF"
+
+shef_non_canonical_ont$class = "ONT Artic"
+
+shef_non_canonical_ont$status = "Non-canonical"
+
+shef_non_canonical_ont = shef_non_canonical_ont %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(nsgRNA_HQ_count + nsgRNA_LQ_count))
+
+
+
+#==============================
+# Clinial Isolates Illumina
+#==============================
+
+non_canonical_illumina = read.csv("supplementary_file_11_glasgow_bait_capure_novel.csv")
+
+non_canonical_illumina$location = "GLAS"
+
+non_canonical_illumina$class = "Illumina Bait"
+
+non_canonical_illumina$status = "Non-canonical"
+
+
+non_canonical_illumina = non_canonical_illumina  %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(sgRNA_count))
+
+canonical_illumina = read.csv("supplementary_file_14_glasgow_bait_capure.csv")
+
+canonical_illumina$location = "GLAS"
+
+canonical_illumina$class = "Illumina Bait"
+
+canonical_illumina$status = "Canonical"
+
+canonical_illumina = canonical_illumina %>% filter(orf!='ORF1a') %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(sgRNA_count))
+
+all_clinical = rbind(shef_canonical_ont,glas_canonical_ont,shef_non_canonical_ont,glas_non_canonical_ont,canonical_illumina,non_canonical_illumina)
+
+all_clinical$percent = (all_clinical$raw_reads/all_clinical$mapped_reads) * 100
+
+
+
+#==============================
+# Cell Lines Canonical ONT
+#==============================
+
+cell_canonical_ont = read.csv("supplementary_file_6_ont_in_vitro.csv")
+
+cell_canonical_ont$location = "IN VITRO"
+
+cell_canonical_ont$class = "ONT Artic"
+
+cell_canonical_ont$status = "Canonical"
+
+cell_canonical_ont = cell_canonical_ont %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(sgRNA_HQ_count+sgRNA_LQ_count))
+
+#==============================
+# Cell Lines Non-Canonical ONT
+#==============================
+
+cell_non_canonical_ont = read.csv("supplementary_file_13_ont_in_vitro_novel.csv")
+
+cell_non_canonical_ont$location = "IN VITRO"
+
+cell_non_canonical_ont$class = "ONT Artic"
+
+cell_non_canonical_ont$status = "Non-canonical"
+
+cell_non_canonical_ont = cell_non_canonical_ont %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(nsgRNA_HQ_count + nsgRNA_LQ_count))
+
+
+all_cell_ont = rbind(cell_canonical_ont,cell_non_canonical_ont)
+
+all_cell_ont$percent = (all_cell_ont$raw_reads/all_cell_ont$mapped_reads) * 100
+
+all_ont=rbind(all_clinical,all_cell_ont)
+
+#==============================
+# Cell Lines Canonical Illumina
+#==============================
+
+cell_canonical_illumina = read.csv("supplementary_file_5_illumina_in_vitro.csv")
+
+cell_canonical_illumina$location = "IN VITRO"
+
+cell_canonical_illumina$class = "Illumina\nMetagenomic"
+
+cell_canonical_illumina$status = "Canonical"
+
+cell_canonical_illumina = cell_canonical_illumina %>% filter(orf!='ORF1a') %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(sgRNA_count))
+
+#==============================
+# Cell Lines Non-Canonical Illumina
+#==============================
+
+cell_non_canonical_illumina = read.csv("supplementary_file_12_illumina_in_vitro_novel.csv")
+
+cell_non_canonical_illumina$location = "IN VITRO"
+
+cell_non_canonical_illumina$class = "Illumina\nMetagenomic"
+
+cell_non_canonical_illumina$status = "Non-canonical"
+
+cell_non_canonical_illumina = cell_non_canonical_illumina  %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(sgRNA_count))
+
+all_cell_illumina = rbind(cell_canonical_illumina,cell_non_canonical_illumina)
+
+all_cell_illumina$percent = (all_cell_illumina$raw_reads/all_cell_ont$mapped_reads) * 100
+
+all = rbind(all_ont,all_cell_illumina)
+
+
+a=ggplot(all,aes(location,percent,color=status))+
+  geom_boxplot(outlier.shape = NA)+
+  geom_jitter(height=0,alpha=0.3)+
+  facet_grid(status~class,scales="free_x",space="free")+
+  scale_y_log10("sgRNA as a Percent\nof Total Reads (log10)",labels = comma)+
+  scale_x_discrete("Dataset")+
+  ft_theme()+
+  annotation_logticks(sides="l",color="#4D4845",outside=T)+
+  scale_color_manual("sgRNA Type",values=c(navy,coral))+
+  theme(
+    panel.background=element_rect(fill="grey97",color="white"),
+    
+        strip.text.x = element_text(face = "bold",colour = '#4D4845'),
+        strip.text.y = element_text(face = "bold",colour = '#4D4845'),
+        panel.spacing.x=unit(1, "lines"),
+axis.text.y = element_text(margin = margin(r = 5))
+    
+  )+
+  coord_cartesian(clip = "off")
+
+#==============================
+# Get percentage of sgRNA that are Non-canonical
+#==============================
+
+
+non_percent = all %>% group_by(sample,location,class) %>% summarise(value=(raw_reads[status=="Non-canonical"]/(raw_reads[status=="Canonical"]+raw_reads[status=="Non-canonical"]))*100) 
+
+b=ggplot(non_percent,aes(location,value),color=coral)+
+  geom_boxplot(outlier.shape = NA,color=coral)+
+  geom_jitter(height=0,alpha=0.3,color=coral)+
+  facet_grid(~class,scales="free_x",space="free")+
+  scale_y_log10("Percentage of Total\nsgRNA that is Non-Canonical",labels = comma)+
+  scale_x_discrete("Dataset")+
+  ft_theme()+
+  annotation_logticks(sides="l",color="#4D4845",outside=T)+
+  theme(
+    panel.background=element_rect(fill="grey97",color="white"),
+    
+        strip.text.x = element_text(face = "bold",colour = '#4D4845'),
+        strip.text.y = element_text(face = "bold",colour = '#4D4845'),
+        panel.spacing.x=unit(1, "lines"),
+axis.text.y = element_text(margin = margin(r = 5))
+    
+  )+
+  coord_cartesian(clip = "off")
+
+ggarrange(a,b,labels=c("A","B"),nrow=2)
+
+```
+
+#### Supplementary Figure S6 -  Number of samples with at the most frequently represented non-canonical sub-genomic RNAs
+
+```{r supp_figure_s6_non_canonical_sgRNA_counts , fig.width=8.25, fig.height=3, echo=F,warnings=F,message=F}
+
+#==============================
+# Non-cannonical counts
+#==============================
+
 setwd("/home/md1mpar/Documents/projects/periscope/genome_research_revision/summary_data")
-read_lengths=read.csv("supplementary_file_15_read_lengths.csv",sep="\t")
+shef_non_canonical_ont=read.csv("supplementary_file_2_novel_orf_counts.csv")
 
-ggplot(read_lengths,aes(length,color=class,fill=class))+
-  geom_density(alpha=0.5)+
+
+ggplot(shef_non_canonical_ont %>% filter(pos>50) %>% group_by(pos) %>% summarise(n=n()) %>% filter(n>100),aes(reorder(as.factor(pos),-n),n))+
+  geom_bar(stat="identity",fill=navy,color=navy,width = 0.8)+
+  ft_theme()+
+  scale_x_discrete("Read Start Position")+
+  scale_y_continuous("Number of Samples")+
+  theme(axis.text.x=element_text(angle=45,hjust=1),
+        panel.background=element_rect(fill="grey97",color="white"))
+```
+
+#### Supplementary Figure S7 - Read-Level evidence for non-canonical sub-genomic RNA at 5785 and 10639
+
+
+```{r supp_figure_s7_highly_expressed_non_canonical_sgRNA, fig.width=8.25, fig.height=7, echo=F,warnings=F,message=F}
+
+
+#==============================
+# Get images from file
+#==============================
+setwd("/home/md1mpar/Documents/projects/periscope/genome_research_revision/summary_data")
+five <- readPNG("images/supp_figure_5785.png")
+
+
+five = ggplot() + 
+    background_image(five) +
+    # This ensures that the image leaves some space at the edges
+    theme(plot.margin = margin(t=1, l=1, r=1, b=1, unit = "cm"))
+
+ten <- readPNG("images/supp_figure_10639.png")
+
+ten = ggplot() + 
+    background_image(ten) +
+    # This ensures that the image leaves some space at the edges
+    theme(plot.margin = margin(t=1, l=1, r=1, b=1, unit = "cm"))
+
+#==============================
+# 10639
+#==============================
+
+orfs = c("S","ORF3a","M","N","10639")
+counts = c(80,9,219,154,136)
+nov = data.frame(orfs,counts)
+nov$orfs=factor(nov$orfs,levels=c("S","ORF3a","E","M","ORF6","ORF7a","N","10639"))
+
+ten_bars = ggplot(nov,aes(reorder(orfs,-counts),counts,fill=orfs,color=orfs))+
+  geom_bar(stat="identity")+
   ft_theme()+
   theme(
-    panel.background=element_rect(fill="grey97",color="white")
+    legend.position = "None",
+    axis.text.x=element_text(angle=45,hjust=1)
   )+
-  scale_x_continuous("Read Length",limits=c(0,1000))+
-  scale_y_continuous("Density")+
-  scale_color_manual("Read Class",values=c(navy,coral))+
-  scale_fill_manual("Read Class",values=c(navy,coral))
+  scale_y_continuous("Sub-genomic RNA Count")+
+  scale_x_discrete("Sub-genomic RNA")+
+  scale_fill_manual(values=c(navy,coral,purple,aqua,grey,orange,aqua,grey))+
+  scale_color_manual(values=c(navy,coral,purple,aqua,grey,orange,aqua,grey))
+
+counts = c(22,1,74,741,41,1,8,943)
+
+#==============================
+# 5785
+#==============================
+
+orfs = c("S","ORF3a","E","M","ORF6","ORF7a","ORF8","N","5785")
+counts = c(22,1,74,741,41,1,8,943,31)
+nov = data.frame(orfs,counts)
+nov$orfs=factor(nov$orfs,levels=c("S","ORF3a","E","M","ORF6","ORF7a","ORF8","N","5785"))
+
+five_bars = ggplot(nov,aes(reorder(orfs,-counts),counts,fill=orfs,color=orfs))+
+  geom_bar(stat="identity")+
+  ft_theme()+
+  theme(
+    legend.position = "None",
+    axis.text.x=element_text(angle=45,hjust=1,size=8)
+  )+
+  scale_y_continuous("Sub-genomic RNA Count")+
+  scale_x_discrete("Sub-genomic RNA")+
+  scale_fill_manual(values=c(navy,coral,green,purple,yellow,orange,grey,aqua,grey))+
+  scale_color_manual(values=c(navy,coral,green,purple,yellow,orange,grey,aqua,grey))
+
+ggarrange(ten,ten_bars,five,five_bars,nrow=2,ncol=2,labels=c("A","B","C","D"),widths = c(1,0.3),heights = c(0.9,1))
 
 ```
 
 
-#### Supplementary Figure SX - sgRNA from Illumina Bait Based Capture
+#### Supplementary Figure S8 - sgRNA from Illumina Bait Based Capture
 
 
 ```{r supp_figure_s8_illumina_bait_capture , fig.width=8.25, fig.height=11.75, echo=F,warnings=F,message=F}
@@ -1362,134 +1706,7 @@ ggarrange(canonical,non_canonical,nrow=2,heights=c(0.8,1),align="hv")
 
 ```
 
-#### Supplementary Figure SX - Evidence for Production of a Sub-Genomic RNA that Could Represent ORF3b
-
-
-
-#### Supplementary Figure SX - Normalised ECT is not Correlated with the Raw amount of Sub-Genomic RNA Detected
-
-
-
-
-```{r supp_figure_s13_ect_coverage , fig.width=6, fig.height=4, echo=F,warnings=F,message=F}
-setwd("/home/md1mpar/Documents/projects/periscope/genome_research_revision/summary_data")
-ct = read.csv("supplementary_file_9_sample_ect.csv")
-sg = read.csv("supplementary_file_1_cannonical_orf_counts.csv")
-
-
-all = merge(sg,ct)
-
-all=all%>%filter(orf!="ORF1a")%>%group_by(sample,E_CT_normalised)%>%summarise(sum=sum(sgRNA_HQ_count+sgRNA_LQ_count))%>%select(sample,sum,E_CT_normalised)
-
-test=cor.test(all$sum, all$E_CT_normalised, method="spearman")
-
-test$rho
-
-ggplot(all,aes(sum,E_CT_normalised))+
-  geom_point(color=navy,alpha=0.5)+
-  geom_smooth(method="lm",color=coral)+
-  annotate(geom="text",label=paste("Spearman Rank Correlation\nrho=",round(test$estimate,3),",p=",round(test$p.value,4),sep=""),x=4000,y=1.5,color="#4D4845")+
-  ft_theme()+
-  scale_x_continuous("Total HQ Raw sgRNA Count")+
-  scale_y_reverse("ECT Normalised to RNASEP",limits=c(2,0))+
-  theme(panel.background=element_rect(fill="grey97",color="white"))
-```
-
-#### Supplementary Figure SX - Consensus Coverage is not Correlated with the Raw Amount of Sub-Genomic RNA Detected
-
-
-
-#### Supplementary Figure SX -  Number of samples with at the most frequently represented non-canonical sub-genomic RNAs
-
-```{r supp_figure_s6_non_canonical_sgRNA_counts , fig.width=8.25, fig.height=3, echo=F,warnings=F,message=F}
-setwd("/home/md1mpar/Documents/projects/periscope/genome_research_revision/summary_data")
-shef_non_canonical_ont=read.csv("supplementary_file_2_novel_orf_counts.csv")
-
-
-ggplot(shef_non_canonical_ont %>% filter(pos>50) %>% group_by(pos) %>% summarise(n=n()) %>% filter(n>100),aes(reorder(as.factor(pos),-n),n))+
-  geom_bar(stat="identity",fill=navy,color=navy,width = 0.8)+
-  ft_theme()+
-  scale_x_discrete("Read Start Position")+
-  scale_y_continuous("Number of Samples")+
-  theme(axis.text.x=element_text(angle=45,hjust=1),
-        panel.background=element_rect(fill="grey97",color="white"))
-```
-
-#### Supplementary Figure SX - Read-Level evidence for non-canonical sub-genomic RNA at 5785 and 10639
-
-
-```{r , fig.width=8.25, fig.height=7, echo=F,warnings=F,message=F}
-
-
-#==============================
-# Get images from file
-#==============================
-setwd("/home/md1mpar/Documents/projects/periscope/genome_research_revision/summary_data")
-five <- readPNG("images/supp_figure_5785.png")
-
-
-five = ggplot() + 
-    background_image(five) +
-    # This ensures that the image leaves some space at the edges
-    theme(plot.margin = margin(t=1, l=1, r=1, b=1, unit = "cm"))
-
-ten <- readPNG("images/supp_figure_10639.png")
-
-ten = ggplot() + 
-    background_image(ten) +
-    # This ensures that the image leaves some space at the edges
-    theme(plot.margin = margin(t=1, l=1, r=1, b=1, unit = "cm"))
-
-#==============================
-# 10639
-#==============================
-
-orfs = c("S","ORF3a","M","N","10639")
-counts = c(80,9,219,154,136)
-nov = data.frame(orfs,counts)
-nov$orfs=factor(nov$orfs,levels=c("S","ORF3a","E","M","ORF6","ORF7a","N","10639"))
-
-ten_bars = ggplot(nov,aes(reorder(orfs,-counts),counts,fill=orfs,color=orfs))+
-  geom_bar(stat="identity")+
-  ft_theme()+
-  theme(
-    legend.position = "None",
-    axis.text.x=element_text(angle=45,hjust=1)
-  )+
-  scale_y_continuous("Sub-genomic RNA Count")+
-  scale_x_discrete("Sub-genomic RNA")+
-  scale_fill_manual(values=c(navy,coral,purple,aqua,grey,orange,aqua,grey))+
-  scale_color_manual(values=c(navy,coral,purple,aqua,grey,orange,aqua,grey))
-
-counts = c(22,1,74,741,41,1,8,943)
-
-#==============================
-# 5785
-#==============================
-
-orfs = c("S","ORF3a","E","M","ORF6","ORF7a","ORF8","N","5785")
-counts = c(22,1,74,741,41,1,8,943,31)
-nov = data.frame(orfs,counts)
-nov$orfs=factor(nov$orfs,levels=c("S","ORF3a","E","M","ORF6","ORF7a","ORF8","N","5785"))
-
-five_bars = ggplot(nov,aes(reorder(orfs,-counts),counts,fill=orfs,color=orfs))+
-  geom_bar(stat="identity")+
-  ft_theme()+
-  theme(
-    legend.position = "None",
-    axis.text.x=element_text(angle=45,hjust=1,size=8)
-  )+
-  scale_y_continuous("Sub-genomic RNA Count")+
-  scale_x_discrete("Sub-genomic RNA")+
-  scale_fill_manual(values=c(navy,coral,green,purple,yellow,orange,grey,aqua,grey))+
-  scale_color_manual(values=c(navy,coral,green,purple,yellow,orange,grey,aqua,grey))
-
-ggarrange(ten,ten_bars,five,five_bars,nrow=2,ncol=2,labels=c("A","B","C","D"),widths = c(1,0.3),heights = c(0.9,1))
-
-```
-
-
-#### Supplementary Figure SX - Non-canonical sub-genomic RNA detected in an vitro infection model
+#### Supplementary Figure S9 - Non-canonical sub-genomic RNA detected in an vitro infection model
 
 ```{r supp_figure_s9_non_canonical_sgRNA_in_vitro , fig.width=8.25, fig.height=11.75, echo=F,warnings=F,message=F}
 
@@ -1709,211 +1926,45 @@ ggarrange(a,b,c,labels=c("A","B","C"),nrow=3,legend="bottom",common.legend = T)
 
 ```
 
-#### Supplementary Figure SX - Sub-Genomic RNA Proportions
 
-```{r supp_figure_s5_sgRNA_proportions , fig.width=7,fig.height=9, echo=F,warnings=F,message=F}
 
-#==============================
-# Clinial Isolates Canonical ONT
-#==============================
+#### Supplementary Figure S11 - Evidence for Production of a Sub-Genomic RNA that Could Represent ORF3b
 
-setwd("/home/md1mpar/Documents/projects/periscope/genome_research_revision/summary_data/")
 
-shef_canonical_ont = read.csv("supplementary_file_1_cannonical_orf_counts.csv")
 
-shef_canonical_ont$location = "SHEF"
+#### Supplementary Figure S13 - Normalised ECT is not Correlated with the Raw amount of Sub-Genomic RNA Detected
 
-shef_canonical_ont$class = "ONT Artic"
 
-shef_canonical_ont$status = "Canonical"
-
-shef_canonical_ont = shef_canonical_ont %>% filter(orf!='ORF1a') %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(sgRNA_HQ_count+sgRNA_LQ_count))
-
-glas_canonical_ont = read.csv("supplementary_file_7_glasgow_ont.csv")
-
-glas_canonical_ont$location = "GLAS"
-
-glas_canonical_ont$class = "ONT Artic"
-
-glas_canonical_ont$status = "Canonical"
-
-glas_canonical_ont = glas_canonical_ont %>% filter(orf!='ORF1a') %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(sgRNA_HQ_count+sgRNA_LQ_count))
+```{r supp_figure_s13_ect_coverage , fig.width=6, fig.height=4, echo=F,warnings=F,message=F}
 
 
 #==============================
-# Clinial Isolates Non-Canonical ONT
+# Normalised ECT
 #==============================
 
-glas_non_canonical_ont=read.csv("supplementary_file_10_novel_orf_counts_glasgow.csv")
-
-glas_non_canonical_ont$location = "GLAS"
-
-glas_non_canonical_ont$class = "ONT Artic"
-
-glas_non_canonical_ont$status = "Non-canonical"
+setwd("/home/md1mpar/Documents/projects/periscope/genome_research_revision/summary_data")
+ct = read.csv("supplementary_file_9_sample_ect.csv")
+sg = read.csv("supplementary_file_1_cannonical_orf_counts.csv")
 
 
-glas_non_canonical_ont = glas_non_canonical_ont %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(nsgRNA_HQ_count + nsgRNA_LQ_count))
+all = merge(sg,ct)
 
-shef_non_canonical_ont=read.csv("supplementary_file_2_novel_orf_counts.csv")
+all=all%>%filter(orf!="ORF1a")%>%group_by(sample,E_CT_normalised)%>%summarise(sum=sum(sgRNA_HQ_count+sgRNA_LQ_count))%>%select(sample,sum,E_CT_normalised)
 
-shef_non_canonical_ont$location = "SHEF"
+test=cor.test(all$sum, all$E_CT_normalised, method="spearman")
 
-shef_non_canonical_ont$class = "ONT Artic"
+test$rho
 
-shef_non_canonical_ont$status = "Non-canonical"
-
-shef_non_canonical_ont = shef_non_canonical_ont %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(nsgRNA_HQ_count + nsgRNA_LQ_count))
-
-
-
-#==============================
-# Clinial Isolates Illumina
-#==============================
-
-non_canonical_illumina = read.csv("supplementary_file_11_glasgow_bait_capure_novel.csv")
-
-non_canonical_illumina$location = "GLAS"
-
-non_canonical_illumina$class = "Illumina Bait"
-
-non_canonical_illumina$status = "Non-canonical"
-
-
-non_canonical_illumina = non_canonical_illumina  %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(sgRNA_count))
-
-canonical_illumina = read.csv("supplementary_file_14_glasgow_bait_capure.csv")
-
-canonical_illumina$location = "GLAS"
-
-canonical_illumina$class = "Illumina Bait"
-
-canonical_illumina$status = "Canonical"
-
-canonical_illumina = canonical_illumina %>% filter(orf!='ORF1a') %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(sgRNA_count))
-
-all_clinical = rbind(shef_canonical_ont,glas_canonical_ont,shef_non_canonical_ont,glas_non_canonical_ont,canonical_illumina,non_canonical_illumina)
-
-all_clinical$percent = (all_clinical$raw_reads/all_clinical$mapped_reads) * 100
-
-
-
-#==============================
-# Cell Lines Canonical ONT
-#==============================
-
-cell_canonical_ont = read.csv("supplementary_file_6_ont_in_vitro.csv")
-
-cell_canonical_ont$location = "IN VITRO"
-
-cell_canonical_ont$class = "ONT Artic"
-
-cell_canonical_ont$status = "Canonical"
-
-cell_canonical_ont = cell_canonical_ont %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(sgRNA_HQ_count+sgRNA_LQ_count))
-
-#==============================
-# Cell Lines Non-Canonical ONT
-#==============================
-
-cell_non_canonical_ont = read.csv("supplementary_file_13_ont_in_vitro_novel.csv")
-
-cell_non_canonical_ont$location = "IN VITRO"
-
-cell_non_canonical_ont$class = "ONT Artic"
-
-cell_non_canonical_ont$status = "Non-canonical"
-
-cell_non_canonical_ont = cell_non_canonical_ont %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(nsgRNA_HQ_count + nsgRNA_LQ_count))
-
-
-all_cell_ont = rbind(cell_canonical_ont,cell_non_canonical_ont)
-
-all_cell_ont$percent = (all_cell_ont$raw_reads/all_cell_ont$mapped_reads) * 100
-
-all_ont=rbind(all_clinical,all_cell_ont)
-
-#==============================
-# Cell Lines Canonical Illumina
-#==============================
-
-cell_canonical_illumina = read.csv("supplementary_file_5_illumina_in_vitro.csv")
-
-cell_canonical_illumina$location = "IN VITRO"
-
-cell_canonical_illumina$class = "Illumina\nMetagenomic"
-
-cell_canonical_illumina$status = "Canonical"
-
-cell_canonical_illumina = cell_canonical_illumina %>% filter(orf!='ORF1a') %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(sgRNA_count))
-
-#==============================
-# Cell Lines Non-Canonical Illumina
-#==============================
-
-cell_non_canonical_illumina = read.csv("supplementary_file_12_illumina_in_vitro_novel.csv")
-
-cell_non_canonical_illumina$location = "IN VITRO"
-
-cell_non_canonical_illumina$class = "Illumina\nMetagenomic"
-
-cell_non_canonical_illumina$status = "Non-canonical"
-
-cell_non_canonical_illumina = cell_non_canonical_illumina  %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(sgRNA_count))
-
-all_cell_illumina = rbind(cell_canonical_illumina,cell_non_canonical_illumina)
-
-all_cell_illumina$percent = (all_cell_illumina$raw_reads/all_cell_ont$mapped_reads) * 100
-
-all = rbind(all_ont,all_cell_illumina)
-
-
-a=ggplot(all,aes(location,percent,color=status))+
-  geom_boxplot(outlier.shape = NA)+
-  geom_jitter(height=0,alpha=0.3)+
-  facet_grid(status~class,scales="free_x",space="free")+
-  scale_y_log10("sgRNA as a Percent\nof Total Reads (log10)",labels = comma)+
-  scale_x_discrete("Dataset")+
+ggplot(all,aes(sum,E_CT_normalised))+
+  geom_point(color=navy,alpha=0.5)+
+  geom_smooth(method="lm",color=coral)+
+  annotate(geom="text",label=paste("Spearman Rank Correlation\nrho=",round(test$estimate,3),",p=",round(test$p.value,4),sep=""),x=4000,y=1.5,color="#4D4845")+
   ft_theme()+
-  annotation_logticks(sides="l",color="#4D4845",outside=T)+
-  scale_color_manual("sgRNA Type",values=c(navy,coral))+
-  theme(
-    panel.background=element_rect(fill="grey97",color="white"),
-    
-        strip.text.x = element_text(face = "bold",colour = '#4D4845'),
-        strip.text.y = element_text(face = "bold",colour = '#4D4845'),
-        panel.spacing.x=unit(1, "lines"),
-axis.text.y = element_text(margin = margin(r = 5))
-    
-  )+
-  coord_cartesian(clip = "off")
-
-#==============================
-# Get percentage of sgRNA that are Non-canonical
-#==============================
-
-
-non_percent = all %>% group_by(sample,location,class) %>% summarise(value=(raw_reads[status=="Non-canonical"]/(raw_reads[status=="Canonical"]+raw_reads[status=="Non-canonical"]))*100) 
-
-b=ggplot(non_percent,aes(location,value),color=coral)+
-  geom_boxplot(outlier.shape = NA,color=coral)+
-  geom_jitter(height=0,alpha=0.3,color=coral)+
-  facet_grid(~class,scales="free_x",space="free")+
-  scale_y_log10("Percentage of Total\nsgRNA that is Non-Canonical",labels = comma)+
-  scale_x_discrete("Dataset")+
-  ft_theme()+
-  annotation_logticks(sides="l",color="#4D4845",outside=T)+
-  theme(
-    panel.background=element_rect(fill="grey97",color="white"),
-    
-        strip.text.x = element_text(face = "bold",colour = '#4D4845'),
-        strip.text.y = element_text(face = "bold",colour = '#4D4845'),
-        panel.spacing.x=unit(1, "lines"),
-axis.text.y = element_text(margin = margin(r = 5))
-    
-  )+
-  coord_cartesian(clip = "off")
-
-ggarrange(a,b,labels=c("A","B"),nrow=2)
-
+  scale_x_continuous("Total HQ Raw sgRNA Count")+
+  scale_y_reverse("ECT Normalised to RNASEP",limits=c(2,0))+
+  theme(panel.background=element_rect(fill="grey97",color="white"))
 ```
+
+#### Supplementary Figure SX - Consensus Coverage is not Correlated with the Raw Amount of Sub-Genomic RNA Detected
+
+

@@ -1,7 +1,7 @@
 # periscope-publication
 
 
-This repository contains all supplementary data files and code required to re-create _most_ of the figures in:
+This repository contains all supplementary data files and code required to re-create _most*_ of the figures in:
  
 __periscope: sub-genomic RNA identification in SARS-CoV-2 Genomic Sequencing Data__
 
@@ -24,3 +24,6 @@ _Matthew D Parker, Benjamin B Lindsey, Shay Leary, Silvana Gaudieri, Abha Chopra
   * factoextra
   * png
   * scales
+  
+  
+* _most_ refers to the fact that some figures have been produced with IGV/Adobe Illustrator. Where there are mixed figures, the IGV pots have been provided as images which are added to the figures with ggarrange. 
