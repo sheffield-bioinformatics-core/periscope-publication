@@ -79,14 +79,14 @@ gpairs_lower <- function(g){
 #==============================
 
 add_stat_smooth <- function(data, mapping, ...){
-  p <- ggplot(data = data, mapping = mapping) + 
-   
+  p <- ggplot(data = data, mapping = mapping) +
+
    geom_point() +
      stat_smooth(method=lm, fill="grey70", color="grey50", ...)+
     stat_cor(geom="text",size=3,method="pearson",fill='#FFFFFF',color='#4D4845',alpha=1,label.y=y,vjust=1,label.padding=unit(0.2, "lines"),aes(label=paste("R",as.character(..r..),sep="~`=`~")))+
     stat_cor(geom="text",size=3,method="pearson",fill='#FFFFFF',color='#4D4845',alpha=1,label.y=y,label.padding=unit(0.2, "lines"),aes(label=paste("p",as.character(..p..*n),sep="~`=`~")),vjust=2.1)+
     theme(
-     
+
     )
     # ggpubr::stat_regline_equation(geom="label",color="grey18",aes(label =  paste(..rr.label..)),fill='white',color=grey,size=3,alpha=0.5)
   p
@@ -146,15 +146,15 @@ column_names <- c(
                     'sgRNA_LLQ_count' = 'sgRNA LLQ\nRaw Count'
                     )
 
-setwd("summary_data/")
+
 
 #==============================
 # Sheffield ARTIC nanopore Cohort
 #==============================
 
-sg = read.csv("supplementary_file_f1_cannonical_orf_counts.csv")
+sg = read.csv("Supplemental_File_S1.csv",comment.char='#')
 
-# We exclude ORF1a as it does not produce sgRNA and N* which is the non-canonical sgRNA produced in KR mutants
+# We exclude ORF1a as it does not produce sgRNA and N* which is the noncanonical sgRNA produced in KR mutants
 
 sg = sg %>% filter(orf!="ORF1a") %>% filter(orf!="N*")
 
@@ -191,7 +191,7 @@ m=melt(sg%>%select(sample,orf,sgRNA_HQ_count,sgRNA_LQ_count,sgRNA_LLQ_count))
 d = ggplot(m,aes(x=reorder_within(orf,-value,variable,median),value,color=variable))+
   geom_boxplot()+
   ft_theme()+
-  scale_y_continuous("sgRNA Reads (Log10)",trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,1000,10000),expand=c(0,0.1))+
+  scale_y_continuous(expression(bold(paste("sgRNA Reads (log"["10"],")"))),trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,1000,10000),expand=c(0,0.1))+
   annotation_logticks(sides = "l",outside=T) +
   facet_wrap(~variable,ncol=3,scales="free_x",labeller = as_labeller(column_names))+
   theme(
@@ -205,14 +205,14 @@ d = ggplot(m,aes(x=reorder_within(orf,-value,variable,median),value,color=variab
   )+
   scale_color_manual("Quality",values=c(navy,navy,grey))+
   scale_x_reordered("ORF")+
-  coord_cartesian(clip = "off") 
+  coord_cartesian(clip = "off")
 
 m=melt(sg%>%filter(!is.na(sgRPHT_HQ))%>%select(sample,orf,sgRPHT_HQ,sgRPHT_LQ,sgRPHT_LLQ))
 
 e = ggplot(m,aes(x=reorder_within(orf,-value,variable,median),value,color=variable))+
   geom_boxplot()+
   ft_theme()+
- scale_y_continuous("sgRPHT (Log10)",trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,1000,10000),expand=c(0,0.1))+
+ scale_y_continuous(expression(bold(paste("sgRPHT (log"["10"],")"))),trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,1000,10000),expand=c(0,0.1))+
   facet_wrap(~variable,ncol=3,scales="free_x",labeller = as_labeller(column_names))+
   annotation_logticks(sides = "l",outside=T) +
   theme(
@@ -224,17 +224,17 @@ e = ggplot(m,aes(x=reorder_within(orf,-value,variable,median),value,color=variab
     strip.text.x = element_text(face = "bold",colour = '#4D4845'),
     axis.text.x=element_text(angle=90,hjust=1,size=8,vjust=0.5),
     axis.text.y = element_text(margin = margin(r = 5))
-    
+
   )+
   scale_color_manual("Quality",values=c(navy,navy,grey))+
   scale_x_reordered("ORF")+
-  coord_cartesian(clip = "off") 
+  coord_cartesian(clip = "off")
 
 m=melt(sg %>% select(sample,orf,sgRPTg_HQ,sgRPTg_LQ))
 
 m$orf = str_replace(m$orf,"ORF10","ORF10*")
 m$location="SHEF"
-glasgow = read.csv("supplementary_file_f7_glasgow_ont.csv")
+glasgow = read.csv("Supplemental_File_F7.csv",comment.char='#')
 g=melt(glasgow%>%filter(orf!="ORF1a")%>%filter(orf!="ORF10")%>%filter(orf!="N*")%>%filter(!is.na(sgRPTg_HQ))%>%select(sample,orf,sgRPTg_HQ,sgRPTg_LQ))
 g$location="GLAS"
 
@@ -244,16 +244,16 @@ all_loc$location<- factor(all_loc$location,levels=c("SHEF","GLAS"))
 a = ggplot(all_loc,aes(x=reorder_within(orf,-value,variable,median),value,color=location))+
   geom_boxplot()+
   ft_theme()+
-  scale_y_continuous("sgRPTg (Log10)",trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,1000,10000),expand=c(0,0.1))+
+  scale_y_continuous(expression(bold(paste("sgRPTg (log"["10"],")"))),trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,1000,10000),expand=c(0,0.1))+
   annotation_logticks(sides = "l",outside=T) +
   facet_wrap(~variable,ncol=3,scales="free_x",labeller = as_labeller(column_names))+
   theme(
     panel.background=element_rect(fill="grey97",color="white"),
     legend.position = "bottom",
     plot.margin = margin(t=0, l=0.5, r=0, b=0.1, unit = "cm"),
-    
+
     legend.justification = "center",
-    
+
     panel.spacing.x=unit(1, "lines"),
     strip.text.x = element_text(face = "bold",colour = '#4D4845'),
     axis.text.x=element_text(angle=90,hjust=1),
@@ -261,7 +261,7 @@ a = ggplot(all_loc,aes(x=reorder_within(orf,-value,variable,median),value,color=
   )+
   scale_color_manual("Location",values=c(navy,coral))+
   scale_x_reordered("ORF")+
-  coord_cartesian(clip = "off") 
+  coord_cartesian(clip = "off")
 
 #==============================
 # In Vitro Data - comparisson with Illumina
@@ -271,7 +271,7 @@ a = ggplot(all_loc,aes(x=reorder_within(orf,-value,variable,median),value,color=
 # Illumina
 #==============================
 
-cell_illumina = read.csv("supplementary_file_f5_illumina_in_vitro.csv")
+cell_illumina = read.csv("Supplemental_File_S5.csv",comment.char='#')
 
 cell_illumina = cell_illumina %>% separate(sample,c("line","virus","time","s"),sep="_")
 cell_illumina$line = str_replace(cell_illumina$line,"VAT","veroE6\nACE2\nTMPRSS2")
@@ -285,7 +285,7 @@ illumina_normalised = ggplot(cell_illumina%>%filter(orf!="ORF10") %>% filter(orf
   ggtitle("Illumina Metagenomic")+
   facet_grid(virus~line)+
   ft_theme()+
-  scale_y_continuous("Sum of Normalised\nsgRNA (Log10)",trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,3000))+
+  scale_y_continuous(expression(bold(paste("Sum Normalized sgRNA (log"["10"],")"))),trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,3000))+
   scale_x_discrete("Time (h)")+
   theme(
     panel.background=element_rect(fill="grey97",color="white"),
@@ -306,7 +306,7 @@ illumina_normalised = ggplot(cell_illumina%>%filter(orf!="ORF10") %>% filter(orf
 # ONT
 #==============================
 
-cell_ont = read.csv("supplementary_file_f6_ont_in_vitro.csv")
+cell_ont = read.csv("Supplemental_File_S6.csv",comment.char='#')
 
 cell_ont = cell_ont %>% separate(sample,c("line","virus","time","s"),sep="_")
 
@@ -321,7 +321,7 @@ ont_normalised = ggplot(cell_ont%>%filter(orf!="ORF10") %>% filter(orf!='ORF1a')
  facet_grid(virus~line)+
   ggtitle("ONT ARTIC")+
   ft_theme()+
-   scale_y_continuous("Sum of Normalised\nsgRNA (Log10)",trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,300))+
+   scale_y_continuous(expression(bold(paste("Sum Normalized sgRNA (log"["10"],")"))),trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,300))+
   scale_x_discrete("Time (h)")+
   theme(
     panel.background=element_rect(fill="grey97",color="white"),
@@ -357,7 +357,7 @@ f = ggplot(all,aes(time,sum_norm,group=class,color=class))+
   geom_line()+
   facet_grid(virus~line)+
   ft_theme()+
-  scale_y_continuous("Scaled Normalised\nTotal sgRNA",breaks=c(0,0.5,1))+
+  scale_y_continuous("Scaled Normalized\nTotal sgRNA",breaks=c(0,0.5,1))+
   scale_x_discrete("Time (h)")+
   theme(
     panel.background=element_rect(fill="grey97",color="white"),
@@ -396,10 +396,10 @@ figure2
 #==============================
 # Technical Replicates 1
 #==============================
-setwd("summary_data/")
-sg = read.csv("supplementary_file_f1_cannonical_orf_counts.csv")
 
-rep=read.table("supplementary_file_f4_repeats.csv",sep=",",header=T)
+sg = read.csv("Supplemental_File_S1.csv",comment.char='#')
+
+rep=read.table("Supplemental_File_S4.csv",sep=",",header=T)
 
 rep = rep %>% filter(orf != "ORF1a")
 
@@ -427,13 +427,13 @@ a=ggpairs(rep%>%
           spread(sample,sgRPTg_HQ)
         ,columns=c(2,3,4,5),xlab="sgRPTg (High Quality)",ylab="sgRPTg (High Quality)",axisLabels = "show" ,lower = list(mapping = aes(color = orf),continuous = add_stat_smooth ),upper=list(continuous='blank'),diag  = list(continuous = "blankDiag"))+
   ft_theme()+
- 
+
   theme(
     panel.background=element_rect(fill="grey97",color="white"),
                                   panel.spacing.x=unit(0.1, "lines"),
     plot.margin = margin(t=0, l=0.5, r=0.5, b=0.5, unit = "cm"),
-                                      
-                                                                                                
+
+
 
        legend.position = "None",
          strip.text.x = element_text(face = "bold",colour = '#4D4845'),
@@ -464,7 +464,7 @@ b=ggpairs(rep%>%
   theme(panel.background=element_rect(fill="grey97",color="white"),
 panel.spacing.x=unit(0.1, "lines"),
     plot.margin = margin(t=0, l=0.5, r=0.5, b=0.5, unit = "cm"),
-                                                                                  
+
 legend.position = "None",
         strip.text.x = element_text(face = "bold",colour = '#4D4845'),
         strip.text.y = element_text(face = "bold",colour = '#4D4845'),
@@ -473,14 +473,14 @@ legend.position = "None",
 scale_y_continuous("sgRPTg (High Quality)")+
   coord_cartesian(ylim=c(0,40))
 
-b=gpairs_lower(b)   
+b=gpairs_lower(b)
 
 #==============================
 # Downsampling
 #==============================
 
 y=log10(11000)
-down=read.csv("supplementary_file_f3_downsampling.csv")
+down=read.csv("Supplemental_File_S3.csv",comment.char='#')
 down$reads <- factor(down$reads,levels=c("5000","10000","50000","100000","200000","500000"))
 down$orf <- factor(down$orf,levels=c("N*","ORF1a","S","ORF3a","E","M","ORF6","ORF7a","ORF8","N","ORF10"))
 
@@ -499,10 +499,10 @@ spread_down=down%>%
 n=15
 
 g = ggpairs(spread_down
-        ,columns=c(3,4,5,6,7,8),xlab="sgRPTg (High Quality - Log10)",ylab="sgRPTg (High Quality - Log10)",legend = c(2,1) ,lower = list(mapping = aes(color = orf),continuous = add_stat_smooth,axisLabels = "show"),diag  = list(continuous = "blankDiag"),upper  = list(continuous = "blank"))+
+        ,columns=c(3,4,5,6,7,8),xlab=expression(bold(paste("sgRPTg (High Quality - log"["10"],")"))),ylab=expression(bold(paste("sgRPTg (High Quality - log"["10"],")"))),legend = c(2,1) ,lower = list(mapping = aes(color = orf),continuous = add_stat_smooth,axisLabels = "show"),diag  = list(continuous = "blankDiag"),upper  = list(continuous = "blank"))+
   ft_theme()+
-  scale_x_continuous("sgRPTg High Quality (Log10)",trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,1000,10000))+
-  scale_y_continuous("sgRPTg High Quality (Log10)",trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,1000,10000))+
+  scale_x_continuous(expression(bold(paste("sgRPTg (High Quality - log"["10"],")"))),trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,1000,10000))+
+  scale_y_continuous(expression(bold(paste("sgRPTg (High Quality - log"["10"],")"))),trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,1000,10000))+
   theme(panel.background=element_rect(fill="grey97",color="white"),
         axis.title = element_text(face = "bold",colour = '#4D4845'),
 
@@ -525,10 +525,10 @@ g = gpairs_lower(g)
 
 
 # Run information
-runs=read.csv("supplementary_file_f8_sample_run_info.csv")
+runs=read.csv("Supplemental_File_S8.csv",comment.char='#')
 
 # CT Values
-ct = read.csv("supplementary_file_f9_sample_ect.csv")
+ct = read.csv("Supplemental_File_S9.csv",comment.char='#')
 
 all=merge(sg,runs)
 all = merge(all,ct,all=T)
@@ -584,7 +584,7 @@ d = fviz_pca_ind(pca.res,col.ind = as.factor(labels$id),geom="")+
 #==============================
 # Mapped Reads
 #==============================
-  
+
 e = fviz_pca_ind(pca.res, alpha.var=0,geom = c(""))+
   ft_theme()+
   ggtitle("")+
@@ -608,7 +608,7 @@ e = fviz_pca_ind(pca.res, alpha.var=0,geom = c(""))+
 f = fviz_pca_ind(pca.res, alpha.var=0,geom = c(""))+
   ft_theme()+
   ggtitle("")+
-  geom_point(alpha=0.5,aes(color=labels$E_CT_normalised))+scale_color_gradientn("Normalised Ect",colors=c(navy,yellow,coral))+theme(legend.text = element_text(angle=45,hjust=1))+
+  geom_point(alpha=0.5,aes(color=labels$E_CT_normalised))+scale_color_gradientn("Normalized Ect",colors=c(navy,yellow,coral))+theme(legend.text = element_text(angle=45,hjust=1))+
   theme(
     legend.title = element_blank(),
     legend.justification = "center",
@@ -632,23 +632,23 @@ figure3
 ```
 
 
-## Figure 4 
-#### Non-Canonical sub-genomic RNA
+## Figure 4
+#### Noncanonical sub-genomic RNA
 
 ```{r figure_4_non_canonical_sgRNA , fig.width=8.25, fig.height=11.75, echo=F,warnings=F,message=F}
 
 #==============================
-# Non-canonical sgRNA, with comparison to Glasgow ONT
+# Noncanonical sgRNA, with comparison to Glasgow ONT
 #==============================
 
-setwd("summary_data/")
-novel_glas=read.csv("supplementary_file_f10_novel_orf_counts_glasgow.csv")
+
+novel_glas=read.csv("Supplemental_File_S10.csv",comment.char='#')
 novel_glas = novel_glas %>% separate(orf,c("novel","pos"),sep="_")
 novel_glas$pos=as.numeric(as.character(novel_glas$pos))
 novel_glas$location="GLAS"
 novel_glas$y=-0.05
 
-novel_shef=read.csv("supplementary_file_f2_novel_orf_counts.csv")
+novel_shef=read.csv("Supplemental_File_S2.csv",comment.char='#')
 #novel_shef = novel_shef %>% separate(orf,c("novel","pos"),sep="_")
 novel_shef$pos=as.numeric(as.character(novel_shef$pos))
 novel_shef$location="SHEF"
@@ -693,7 +693,7 @@ full=ggplot(mapping=aes(x=start,y=y,xend=pos,yend=y))+
     axis.text.y=element_blank(),
     axis.title.y=element_blank(),
     axis.line.y = element_blank(),
-    panel.grid.major = element_blank(), 
+    panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     legend.position = "right",
     legend.justification = "center",
@@ -725,7 +725,7 @@ zoom = full+
 # Glasgow bait data comparison
 #==============================
 
-novel_glasgow_bait = read.csv("supplementary_file_f11_glasgow_bait_capure_novel.csv")
+novel_glasgow_bait = read.csv("Supplemental_File_S11.csv",comment.char='#')
 novel_glasgow_bait = novel_glasgow_bait %>% separate(orf,c("novel","pos"),sep="_")
 novel_glasgow_bait$pos=as.numeric(as.character(novel_glasgow_bait$pos))
 novel_glasgow_bait$location="GLAS"
@@ -775,7 +775,7 @@ bait=ggplot(mapping=aes(x=start,y=y,xend=pos,yend=y))+
     axis.text.y=element_blank(),
     axis.title.y=element_blank(),
     axis.line.y = element_blank(),
-    panel.grid.major = element_blank(), 
+    panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     legend.position = "right",
     legend.justification = "center",
@@ -800,7 +800,7 @@ bait=ggplot(mapping=aes(x=start,y=y,xend=pos,yend=y))+
 
 img1 <- readPNG("images/figure_4_reads.png")
 
-reads = ggplot() + 
+reads = ggplot() +
     background_image(img1) +
     # This ensures that the image leaves some space at the edges
     theme(plot.margin = margin(t=0.5, l=0.5, r=0.5, b=0.5, unit = "cm"))
@@ -827,7 +827,7 @@ counts = ggplot(nov,aes(reorder(orfs,-counts),counts,fill=orfs))+
 # In Vitro Data - Illumnina
 #==============================
 
-cell_illumina = read.csv("supplementary_file_f5_illumina_in_vitro.csv")
+cell_illumina = read.csv("Supplemental_File_S5.csv",comment.char='#')
 
 cell_illumina = cell_illumina %>% separate(sample,c("line","virus","time","s"),sep="_")
 cell_illumina$line = str_replace(cell_illumina$line,"VAT","ACE2\nTMPRSS2")
@@ -842,7 +842,7 @@ illumina_normalised = ggplot(cell_illumina %>% filter(orf!='ORF1a') %>% filter(o
   ggtitle("Illumina\nMetagenomic")+
   facet_grid(virus~line)+
   ft_theme()+
-  scale_y_continuous("Sum of Normalised\nsgRNA (Log10)",trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,3000))+
+  scale_y_continuous(expression(bold(paste("Sum Normalized nsgRNA (log"["10"],")"))),trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,3000))+
   scale_x_discrete("Time (h)")+
   theme(
     panel.background=element_rect(fill="grey97",color="white"),
@@ -860,7 +860,7 @@ illumina_normalised = ggplot(cell_illumina %>% filter(orf!='ORF1a') %>% filter(o
 # In Vitro Data - ONT
 #==============================
 
-cell_ont = read.csv("supplementary_file_f6_ont_in_vitro.csv")
+cell_ont = read.csv("Supplemental_File_F6.csv",comment.char='#')
 
 cell_ont = cell_ont %>% separate(sample,c("line","virus","time","s"),sep="_")
 
@@ -876,7 +876,7 @@ ont_normalised = ggplot(cell_ont %>% filter(orf!='ORF1a') %>% filter(orf!='ORF10
  facet_grid(virus~line)+
   ggtitle("ONT ARTIC")+
   ft_theme()+
-   scale_y_continuous("Sum of Normalised\nsgRNA (Log10)",trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,300))+
+   scale_y_continuous(expression(bold(paste("Sum Normalized nsgRNA (log"["10"],")"))),trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,300))+
   scale_x_discrete("Time (h)")+
   theme(
     panel.background=element_rect(fill="grey97",color="white"),
@@ -907,11 +907,11 @@ all=rbind(ill,ont)
 
 
 #==============================
-# Non-canonical in cell lines (E,F,G)
+# Noncanonical in cell lines (E,F,G)
 #==============================
 
-setwd("summary_data")
-novel = read.csv("supplementary_file_f12_illumina_in_vitro_novel.csv")
+
+novel = read.csv("Supplemental_File_S12.csv",comment.char='#')
 
 novel = novel %>% separate(sample,c("line","virus","time","s"),sep="_")
 novel = novel %>% separate(orf,c("novel","pos"),sep="_")
@@ -923,7 +923,7 @@ sum$count=normalize(sum$count)
 sum$class="Illumina\nMetagenomic"
 novel$class="Illumina\nMetagenomic"
 
-novel_ont = read.csv("supplementary_file_f13_ont_in_vitro_novel.csv")
+novel_ont = read.csv("Supplemental_File_S13.csv",comment.char='#')
 novel_ont$y=0.05
 
 novel_ont = novel_ont %>% separate(sample,c("line","virus","time","s"),sep="_")
@@ -960,11 +960,11 @@ e=ggplot(all_sum,aes(time,count,group=class,color=class))+
     legend.justification = "center",
     legend.direction = "vertical",
     panel.spacing.x=unit(0.1, "lines"),
-    
+
   )+
   scale_color_manual("Technology",values=c(orange,navy))+
   scale_x_discrete("Time (h)")+
-  scale_y_continuous("Scaled Normalised\nTotal sgRNA",breaks=c(0,0.5,1))
+  scale_y_continuous("Scaled Normalized\nTotal sgRNA",breaks=c(0,0.5,1))
 
 
 
@@ -980,12 +980,12 @@ ggarrange(full,zoom,row2,bait,row4,labels=c("A",'','','D',''),nrow=5,heights=c(0
 
 ```{r figure_5_variants , fig.width=8.25, fig.height=11.75, echo=F,warnings=F,message=F}
 
-setwd("summary_data")
+
 #==============================
 # all varinats plot
 #==============================
 
-variants=read.table("supplementary_file_f16_base_counts.csv",sep=",",header=T)
+variants=read.table("Supplemental_File_S16.csv",sep=",",header=T)
 positions=variants %>% filter(!is.na(value)) %>% filter(variable %in% c("sgRNA_HQ")) %>% group_by(position,value)
 
 variants_f=variants%>%filter(position %in% positions$position)
@@ -1017,9 +1017,9 @@ scale_color_manual("Base",values=c(green,navy,orange,coral))+
   coord_cartesian(clip="off")+
   annotate(geom="tile",x="27046",y=0.5,fill=NA,color="white",size=1)+
   annotate(geom="tile",x="28256",y=0.5,fill=NA,color="white",size=1)
-  
 
-sg = read.csv("supplementary_file_f1_cannonical_orf_counts.csv")
+
+sg = read.csv("Supplemental_File_S1.csv",comment.char='#')
 
 
 n_variant_m=melt(sg%>%filter(orf!="ORF1a")%>%filter(orf!="N*")%>%filter(orf!="ORF1a")%>%filter(!is.na(sgRPHT_HQ))%>%mutate(color=ifelse(sample %in% c("SHEF-C81D4","SHEF-C2DB8","SHEF-CD6EF","SHEF-C49C1","SHEF-CEA6A","SHEF-C0C35","SHEF-CD6EF","SHEF-C3BF9","SHEF-C04C4","SHEF-BFEE8"),"True","False"))%>%mutate(HQ_LQ=sgRPTg_HQ+sgRPTg_LQ)%>%select(sample,orf,color,HQ_LQ))
@@ -1028,7 +1028,7 @@ e = ggplot(n_variant_m%>%filter(orf!="ORF1a")%>%filter(orf!="N*")%>%filter(orf==
     geom_boxplot(outlier.shape = NA,aes(color=color))+
     geom_jitter(height = 0,aes(color=color),alpha=0.3)+
     ft_theme()+
-    scale_y_continuous("sgRPTg (Log10)",trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,1000,10000))+
+    scale_y_continuous(expression(bold(paste("sgRPTg (log"["10"],")"))),trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,1000,10000))+
     theme(
         panel.background=element_rect(fill="grey97",color="white"),
         legend.position = "None",
@@ -1044,7 +1044,7 @@ c = ggplot(n_variant_m%>%filter(orf!="ORF1a")%>%filter(orf!="N*")%>%filter(orf==
     geom_boxplot(outlier.shape = NA,aes(color=color))+
     geom_jitter(height = 0,aes(color=color),alpha=0.3)+
     ft_theme()+
-    scale_y_continuous("sgRPTg (Log10)",trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,1000,10000))+
+    scale_y_continuous(expression(bold(paste("sgRPTg (log"["10"],")"))),trans=scales::pseudo_log_trans(base = 10),breaks=c(0,10,100,1000,10000))+
     theme(
         panel.background=element_rect(fill="grey97",color="white"),
         legend.position = "None",
@@ -1060,14 +1060,14 @@ c = ggplot(n_variant_m%>%filter(orf!="ORF1a")%>%filter(orf!="N*")%>%filter(orf==
 
 two_seven <- readPNG("images/figure_5_variant_27046.png")
 
-two_seven = ggplot() + 
+two_seven = ggplot() +
     background_image(two_seven) +
     # This ensures that the image leaves some space at the edges
     theme(plot.margin = margin(t=1, l=1, r=1, b=1, unit = "cm"))
 
 two_eight <- readPNG("images/figure_5_variant_28256.png")
 
-two_eight = ggplot() + 
+two_eight = ggplot() +
     background_image(two_eight) +
     # This ensures that the image leaves some space at the edges
     theme(plot.margin = margin(t=1, l=1, r=1, b=1, unit = "cm"))
@@ -1090,8 +1090,8 @@ ggarrange(a,row2,row3,labels=c("A","",""),nrow=3,heights=c(1,0.9,0.9))
 # Read lengths plot
 #==============================
 
-setwd("summary_data")
-read_lengths=read.csv("supplementary_file_f15_read_lengths.csv",sep="\t")
+
+read_lengths=read.csv("Supplemental_File_S15.csv",sep="\t")
 
 ggplot(read_lengths,aes(length,color=class,fill=class))+
   geom_density(alpha=0.5)+
@@ -1115,13 +1115,13 @@ ggplot(read_lengths,aes(length,color=class,fill=class))+
 # Clinical Isolate data
 #==============================
 
-setwd("summary_data/")
 
-shef = read.csv("supplementary_file_f1_cannonical_orf_counts.csv")
+
+shef = read.csv("Supplemental_File_S1.csv",comment.char='#')
 
 shef_mapped_reads = unique(shef %>% select(sample,mapped_reads) )
 shef_mapped_reads$location = "SHEF"
-glas = read.csv("supplementary_file_f7_glasgow_ont.csv")
+glas = read.csv("Supplemental_File_F7.csv",comment.char='#')
 
 glas_mapped_reads = unique(glas %>% select(sample,mapped_reads) )
 
@@ -1129,7 +1129,7 @@ glas_mapped_reads$location = "GLAS"
 
 shef_med=round(median(shef_mapped_reads$mapped_reads),2)
 glas_med=round(median(glas_mapped_reads$mapped_reads),2)
-               
+
 all_mapped=rbind(glas_mapped_reads,shef_mapped_reads)
 
 a=ggplot(
@@ -1140,13 +1140,13 @@ a=ggplot(
   geom_jitter(height = 0,alpha=0.1)+
   ft_theme()+
   geom_hline(color=grey,yintercept = 200000)+
-  scale_y_log10("Mapped Read Count",limits=c(1,10000000))+
+  scale_y_log10(expression(bold(paste("Mapped Read Count (log"["10"],")"))),limits=c(1,10000000))+
   scale_x_discrete("Sequencing Centre")+
   scale_color_manual("Sequencing Centre",values=c(navy,coral))+
   theme(
     legend.position = "none",
    panel.background=element_rect(fill="grey97",color="white")
-  ) + 
+  ) +
   annotate(geom="text",label=paste("Median",shef_med,sep="\n"),x="SHEF",y=1000,fontface='bold',color="#4D4845",size=4)+
   annotate(geom="text",label=paste("Median",glas_med,sep="\n"),x="GLAS",y=1000,fontface='bold',color="#4D4845",size=4)+
   annotation_logticks(sides = "l")
@@ -1179,8 +1179,8 @@ b=ggplot(
 # Cell Line Data
 #==============================
 
-setwd("summary_data")
-novel = read.csv("supplementary_file_f12_illumina_in_vitro_novel.csv")
+
+novel = read.csv("Supplemental_File_S12.csv",comment.char='#')
 
 
 
@@ -1188,7 +1188,7 @@ novel = read.csv("supplementary_file_f12_illumina_in_vitro_novel.csv")
 novel$class="Illumina\nMetagenomic"
 novel = unique(novel %>% select(sample,mapped_reads,class) )
 
-novel_ont = read.csv("supplementary_file_f13_ont_in_vitro_novel.csv")
+novel_ont = read.csv("Supplemental_File_S13.csv",comment.char='#')
 novel_ont$class = "ONT Artic"
 novel_ont = unique(novel_ont %>% select(sample,mapped_reads,class) )
 
@@ -1205,14 +1205,14 @@ c=ggplot(
   geom_jitter(height = 0,alpha=0.5)+
   ft_theme()+
   geom_hline(color=grey,yintercept = 200000)+
-  scale_y_log10("Mapped Read Count",limits=c(1,10000000))+
+  scale_y_log10(expression(bold(paste("Mapped Read Count (log"["10"],")"))),limits=c(1,10000000))+
   scale_x_discrete("Sequencing Technoloy")+
   scale_color_manual("Sequencing Technology",values=c(navy,coral))+
   theme(
     legend.position = "none",
    panel.background=element_rect(fill="grey97",color="white"),
    axis.text.x = element_text(size=8)
-  ) + 
+  ) +
   annotate(geom="text",label=paste("Median",ill_med,sep="\n"),x="Illumina\nMetagenomic",y=1000,fontface='bold',color="#4D4845",size=4)+
   annotate(geom="text",label=paste("Median",ont_med,sep="\n"),x="ONT Artic",y=1000,fontface='bold',color="#4D4845",size=4)+
   annotation_logticks(sides = "l")
@@ -1258,9 +1258,9 @@ ggarrange(patients,cell_lines,labels=c("A","B"),widths =c(0.9,1) )
 # Clinial Isolates Canonical ONT
 #==============================
 
-setwd("summary_data/")
 
-shef_canonical_ont = read.csv("supplementary_file_f1_cannonical_orf_counts.csv")
+
+shef_canonical_ont = read.csv("Supplemental_File_S1.csv",comment.char='#')
 
 shef_canonical_ont$location = "SHEF"
 
@@ -1270,7 +1270,7 @@ shef_canonical_ont$status = "Canonical"
 
 shef_canonical_ont = shef_canonical_ont %>% filter(orf!='ORF1a') %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(sgRNA_HQ_count+sgRNA_LQ_count))
 
-glas_canonical_ont = read.csv("supplementary_file_f7_glasgow_ont.csv")
+glas_canonical_ont = read.csv("Supplemental_File_F7.csv",comment.char='#')
 
 glas_canonical_ont$location = "GLAS"
 
@@ -1282,27 +1282,27 @@ glas_canonical_ont = glas_canonical_ont %>% filter(orf!='ORF1a') %>% group_by(sa
 
 
 #==============================
-# Clinial Isolates Non-Canonical ONT
+# Clinial Isolates Noncanonical ONT
 #==============================
 
-glas_non_canonical_ont=read.csv("supplementary_file_f10_novel_orf_counts_glasgow.csv")
+glas_non_canonical_ont=read.csv("Supplemental_File_S10.csv",comment.char='#')
 
 glas_non_canonical_ont$location = "GLAS"
 
 glas_non_canonical_ont$class = "ONT Artic"
 
-glas_non_canonical_ont$status = "Non-canonical"
+glas_non_canonical_ont$status = "Noncanonical"
 
 
 glas_non_canonical_ont = glas_non_canonical_ont %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(nsgRNA_HQ_count + nsgRNA_LQ_count))
 
-shef_non_canonical_ont=read.csv("supplementary_file_f2_novel_orf_counts.csv")
+shef_non_canonical_ont=read.csv("Supplemental_File_S2.csv",comment.char='#')
 
 shef_non_canonical_ont$location = "SHEF"
 
 shef_non_canonical_ont$class = "ONT Artic"
 
-shef_non_canonical_ont$status = "Non-canonical"
+shef_non_canonical_ont$status = "Noncanonical"
 
 shef_non_canonical_ont = shef_non_canonical_ont %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(nsgRNA_HQ_count + nsgRNA_LQ_count))
 
@@ -1312,18 +1312,18 @@ shef_non_canonical_ont = shef_non_canonical_ont %>% group_by(sample,location,cla
 # Clinial Isolates Illumina
 #==============================
 
-non_canonical_illumina = read.csv("supplementary_file_f11_glasgow_bait_capure_novel.csv")
+non_canonical_illumina = read.csv("Supplemental_File_S11.csv",comment.char='#')
 
 non_canonical_illumina$location = "GLAS"
 
 non_canonical_illumina$class = "Illumina Bait"
 
-non_canonical_illumina$status = "Non-canonical"
+non_canonical_illumina$status = "Noncanonical"
 
 
 non_canonical_illumina = non_canonical_illumina  %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(sgRNA_count))
 
-canonical_illumina = read.csv("supplementary_file_f14_glasgow_bait_capure.csv")
+canonical_illumina = read.csv("supplementary_file_f14_glasgow_bait_capure.csv",comment.char='#')
 
 canonical_illumina$location = "GLAS"
 
@@ -1343,7 +1343,7 @@ all_clinical$percent = (all_clinical$raw_reads/all_clinical$mapped_reads) * 100
 # Cell Lines Canonical ONT
 #==============================
 
-cell_canonical_ont = read.csv("supplementary_file_f6_ont_in_vitro.csv")
+cell_canonical_ont = read.csv("Supplemental_File_S6.csv",comment.char='#')
 
 cell_canonical_ont$location = "IN VITRO"
 
@@ -1354,16 +1354,16 @@ cell_canonical_ont$status = "Canonical"
 cell_canonical_ont = cell_canonical_ont %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(sgRNA_HQ_count+sgRNA_LQ_count))
 
 #==============================
-# Cell Lines Non-Canonical ONT
+# Cell Lines Noncanonical ONT
 #==============================
 
-cell_non_canonical_ont = read.csv("supplementary_file_f13_ont_in_vitro_novel.csv")
+cell_non_canonical_ont = read.csv("Supplemental_File_S13.csv",comment.char='#')
 
 cell_non_canonical_ont$location = "IN VITRO"
 
 cell_non_canonical_ont$class = "ONT Artic"
 
-cell_non_canonical_ont$status = "Non-canonical"
+cell_non_canonical_ont$status = "Noncanonical"
 
 cell_non_canonical_ont = cell_non_canonical_ont %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(nsgRNA_HQ_count + nsgRNA_LQ_count))
 
@@ -1378,7 +1378,7 @@ all_ont=rbind(all_clinical,all_cell_ont)
 # Cell Lines Canonical Illumina
 #==============================
 
-cell_canonical_illumina = read.csv("supplementary_file_f5_illumina_in_vitro.csv")
+cell_canonical_illumina = read.csv("Supplemental_File_S5.csv",comment.char='#')
 
 cell_canonical_illumina$location = "IN VITRO"
 
@@ -1389,16 +1389,16 @@ cell_canonical_illumina$status = "Canonical"
 cell_canonical_illumina = cell_canonical_illumina %>% filter(orf!='ORF1a') %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(sgRNA_count))
 
 #==============================
-# Cell Lines Non-Canonical Illumina
+# Cell Lines Noncanonical Illumina
 #==============================
 
-cell_non_canonical_illumina = read.csv("supplementary_file_f12_illumina_in_vitro_novel.csv")
+cell_non_canonical_illumina = read.csv("Supplemental_File_S12.csv",comment.char='#')
 
 cell_non_canonical_illumina$location = "IN VITRO"
 
 cell_non_canonical_illumina$class = "Illumina\nMetagenomic"
 
-cell_non_canonical_illumina$status = "Non-canonical"
+cell_non_canonical_illumina$status = "Noncanonical"
 
 cell_non_canonical_illumina = cell_non_canonical_illumina  %>% group_by(sample,location,class,status,mapped_reads) %>% summarise(raw_reads=sum(sgRNA_count))
 
@@ -1413,45 +1413,45 @@ a=ggplot(all,aes(location,percent,color=status))+
   geom_boxplot(outlier.shape = NA)+
   geom_jitter(height=0,alpha=0.3)+
   facet_grid(status~class,scales="free_x",space="free")+
-  scale_y_log10("sgRNA as a Percent\nof Total Reads (log10)",labels = comma)+
+  scale_y_log10(expression(bold(paste("sgRNA as a Percent of Total Reads (log"["10"],")"))),labels = comma)+
   scale_x_discrete("Dataset")+
   ft_theme()+
   annotation_logticks(sides="l",color="#4D4845",outside=T)+
   scale_color_manual("sgRNA Type",values=c(navy,coral))+
   theme(
     panel.background=element_rect(fill="grey97",color="white"),
-    
+
         strip.text.x = element_text(face = "bold",colour = '#4D4845'),
         strip.text.y = element_text(face = "bold",colour = '#4D4845'),
         panel.spacing.x=unit(1, "lines"),
 axis.text.y = element_text(margin = margin(r = 5))
-    
+
   )+
   coord_cartesian(clip = "off")
 
 #==============================
-# Get percentage of sgRNA that are Non-canonical
+# Get percentage of sgRNA that are Noncanonical
 #==============================
 
 
-non_percent = all %>% group_by(sample,location,class) %>% summarise(value=(raw_reads[status=="Non-canonical"]/(raw_reads[status=="Canonical"]+raw_reads[status=="Non-canonical"]))*100) 
+non_percent = all %>% group_by(sample,location,class) %>% summarise(value=(raw_reads[status=="Noncanonical"]/(raw_reads[status=="Canonical"]+raw_reads[status=="Noncanonical"]))*100)
 
 b=ggplot(non_percent,aes(location,value),color=coral)+
   geom_boxplot(outlier.shape = NA,color=coral)+
   geom_jitter(height=0,alpha=0.3,color=coral)+
   facet_grid(~class,scales="free_x",space="free")+
-  scale_y_log10("Percentage of Total\nsgRNA that is Non-Canonical",labels = comma)+
+  scale_y_log10(expression(bold(paste("Percentage of Total sgRNA that is Noncanonical (log"["10"],")"))),labels = comma)+
   scale_x_discrete("Dataset")+
   ft_theme()+
   annotation_logticks(sides="l",color="#4D4845",outside=T)+
   theme(
     panel.background=element_rect(fill="grey97",color="white"),
-    
+
         strip.text.x = element_text(face = "bold",colour = '#4D4845'),
         strip.text.y = element_text(face = "bold",colour = '#4D4845'),
         panel.spacing.x=unit(1, "lines"),
 axis.text.y = element_text(margin = margin(r = 5))
-    
+
   )+
   coord_cartesian(clip = "off")
 
@@ -1459,7 +1459,7 @@ ggarrange(a,b,labels=c("A","B"),nrow=2)
 
 ```
 
-#### Supplementary Figure S6 -  Number of samples with at the most frequently represented non-canonical sub-genomic RNAs
+#### Supplementary Figure S6 -  Number of samples with at the most frequently represented noncanonical sub-genomic RNAs
 
 ```{r supp_figure_s6_non_canonical_sgRNA_counts , fig.width=8.25, fig.height=3, echo=F,warnings=F,message=F}
 
@@ -1467,8 +1467,8 @@ ggarrange(a,b,labels=c("A","B"),nrow=2)
 # Non-cannonical counts
 #==============================
 
-setwd("summary_data")
-shef_non_canonical_ont=read.csv("supplementary_file_f2_novel_orf_counts.csv")
+
+shef_non_canonical_ont=read.csv("Supplemental_File_S2.csv",comment.char='#')
 
 
 ggplot(shef_non_canonical_ont %>% filter(pos>50) %>% group_by(pos) %>% summarise(n=n()) %>% filter(n>100),aes(reorder(as.factor(pos),-n),n))+
@@ -1480,7 +1480,7 @@ ggplot(shef_non_canonical_ont %>% filter(pos>50) %>% group_by(pos) %>% summarise
         panel.background=element_rect(fill="grey97",color="white"))
 ```
 
-#### Supplementary Figure S7 - Read-Level evidence for non-canonical sub-genomic RNA at 5785 and 10639
+#### Supplementary Figure S7 - Read-Level evidence for noncanonical sub-genomic RNA at 5785 and 10639
 
 
 ```{r supp_figure_s7_highly_expressed_non_canonical_sgRNA, fig.width=8.25, fig.height=7, echo=F,warnings=F,message=F}
@@ -1489,18 +1489,18 @@ ggplot(shef_non_canonical_ont %>% filter(pos>50) %>% group_by(pos) %>% summarise
 #==============================
 # Get images from file
 #==============================
-setwd("summary_data")
+
 five <- readPNG("images/supp_figure_5785.png")
 
 
-five = ggplot() + 
+five = ggplot() +
     background_image(five) +
     # This ensures that the image leaves some space at the edges
     theme(plot.margin = margin(t=1, l=1, r=1, b=1, unit = "cm"))
 
 ten <- readPNG("images/supp_figure_10639.png")
 
-ten = ggplot() + 
+ten = ggplot() +
     background_image(ten) +
     # This ensures that the image leaves some space at the edges
     theme(plot.margin = margin(t=1, l=1, r=1, b=1, unit = "cm"))
@@ -1564,11 +1564,11 @@ ggarrange(ten,ten_bars,five,five_bars,nrow=2,ncol=2,labels=c("A","B","C","D"),wi
 # Clinical Samples Illumina Bait Based Capture - Canonical
 #==============================
 
-setwd("summary_data")
 
 
-bait = read.csv("supplementary_file_f14_glasgow_bait_capure.csv")
-# 
+
+bait = read.csv("Supplemental_File_S14.csv",comment.char='#')
+#
 bait = bait %>% filter(orf!="N*")
 coverage=ggplot(bait,aes(reorder(orf,-coverage),coverage))+
   ft_theme()+
@@ -1596,7 +1596,7 @@ sgrna=ggplot(bait,aes(reorder(orf,-sgRNA_count),sgRNA_count))+
         geom_jitter(color=navy,height = 0)+
   scale_color_manual(values=c(navy))+
   scale_x_discrete("ORF")+
-  scale_y_log10("sgRNA\nReads (log10)")
+  scale_y_log10(expression(bold(paste("sgRNA Reads (log"["10"],")"))))
 
 norm_mapped=ggplot(bait,aes(reorder(orf,-sgRPHT),sgRPHT))+
   ft_theme()+
@@ -1610,7 +1610,7 @@ norm_mapped=ggplot(bait,aes(reorder(orf,-sgRPHT),sgRPHT))+
   geom_boxplot(color=navy)+
   scale_color_manual(values=c(navy))+
   scale_x_discrete("ORF")+
-  scale_y_log10("sgRPHT (log10)")
+  scale_y_log10(expression(bold(paste("sgRPHT (log"["10"],")"))))
 
 norm_local=ggplot(bait,aes(reorder(orf,-sgRPTL),sgRPTL))+
   ft_theme()+
@@ -1624,15 +1624,15 @@ norm_local=ggplot(bait,aes(reorder(orf,-sgRPTL),sgRPTL))+
         geom_jitter(color=navy,height = 0)+
   scale_color_manual(values=c(navy))+
   scale_x_discrete("ORF")+
-  scale_y_log10("sgRPTL (log10)")
+  scale_y_log10(expression(bold(paste("sgRPTL (log"["10"],")"))))
 
 canonical = ggarrange(coverage,sgrna,norm_mapped,norm_local,labels=c('A','B','C','D'),nrow=2,ncol=2)
 
 #==============================
-# Clinical Samples Illumina Bait Bases Capture - Non-canonical
+# Clinical Samples Illumina Bait Bases Capture - Noncanonical
 #==============================
 
-novel_illunima = read.csv("supplementary_file_f11_glasgow_bait_capure_novel.csv")
+novel_illunima = read.csv("Supplemental_File_S11.csv",comment.char='#')
 novel_illunima= novel_illunima %>% separate(sample,c("sample","netflex","s"),sep="_")
 novel_illunima = novel_illunima %>% separate(orf,c("novel","pos"),sep="_")
 novel_illunima$pos=as.numeric(as.character(novel_illunima$pos))
@@ -1669,8 +1669,8 @@ full=ggplot(mapping=aes(x=start,y=y,xend=pos,yend=y))+
     axis.text.y=element_blank(),
     axis.title.y=element_blank(),
     axis.line.y = element_blank(),
-    
-    panel.grid.major = element_blank(), 
+
+    panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     strip.text.x = element_text(face="bold")
         )+
@@ -1706,16 +1706,16 @@ ggarrange(canonical,non_canonical,nrow=2,heights=c(0.8,1),align="hv")
 
 ```
 
-#### Supplementary Figure S9 - Non-canonical sub-genomic RNA detected in an vitro infection model
+#### Supplementary Figure S9 - Noncanonical sub-genomic RNA detected in an vitro infection model
 
 ```{r supp_figure_s9_non_canonical_sgRNA_in_vitro , fig.width=8.25, fig.height=11.75, echo=F,warnings=F,message=F}
 
-setwd("summary_data")
+
 #==============================
-# Cell Lines Non-Canonical ONT
+# Cell Lines Noncanonical ONT
 #==============================
 
-cell_non_canonical_ont = read.csv("supplementary_file_f13_ont_in_vitro_novel.csv")
+cell_non_canonical_ont = read.csv("Supplemental_File_S13.csv",comment.char='#')
 
 cell_non_canonical_ont = cell_non_canonical_ont %>% separate(orf,c("novel","pos"),sep="_")
 
@@ -1723,7 +1723,7 @@ cell_non_canonical_ont$location = "IN VITRO"
 
 cell_non_canonical_ont$class = "ONT Artic"
 
-cell_non_canonical_ont$status = "Non-canonical"
+cell_non_canonical_ont$status = "Noncanonical"
 
 cell_non_canonical_ont$y=0.05
 
@@ -1731,7 +1731,7 @@ cell_non_canonical_ont = cell_non_canonical_ont %>% separate(sample,c("line","vi
 
 cell_non_canonical_ont$pos = as.numeric(as.character(cell_non_canonical_ont$pos))
 
-cell_non_canonical_ont = cell_non_canonical_ont %>% filter(pos>50)  %>% group_by(line,virus,time,pos,location,class,status,y) %>% summarise(raw_reads=sum((nsgRNA_HQ_count + nsgRNA_LQ_count)/(mapped_reads/100000)),n=n()) 
+cell_non_canonical_ont = cell_non_canonical_ont %>% filter(pos>50)  %>% group_by(line,virus,time,pos,location,class,status,y) %>% summarise(raw_reads=sum((nsgRNA_HQ_count + nsgRNA_LQ_count)/(mapped_reads/100000)),n=n())
 
 
 cell_non_canonical_ont$line = str_replace(cell_non_canonical_ont$line,"VAT","veroE6\nACE2\nTMPRSS2")
@@ -1743,10 +1743,10 @@ cell_non_canonical_ont$line = str_replace(cell_non_canonical_ont$line,"vero","Ve
 #SHOULD I DIVIDE BY MAPPED READS???? OTTHER WISE YOU CAN'T COMPARE!!! YES DO THIS
 
 #==============================
-# Cell Lines Non-Canonical Illumina
+# Cell Lines Noncanonical Illumina
 #==============================
 
-cell_non_canonical_illumina = read.csv("supplementary_file_f12_illumina_in_vitro_novel.csv")
+cell_non_canonical_illumina = read.csv("Supplemental_File_S12.csv",comment.char='#')
 
 cell_non_canonical_illumina = cell_non_canonical_illumina %>% separate(orf,c("novel","pos"),sep="_")
 
@@ -1754,7 +1754,7 @@ cell_non_canonical_illumina$location = "IN VITRO"
 
 cell_non_canonical_illumina$class = "Illumina\nMetagenomic"
 
-cell_non_canonical_illumina$status = "Non-canonical"
+cell_non_canonical_illumina$status = "Noncanonical"
 
 cell_non_canonical_illumina$y=-0.05
 
@@ -1763,7 +1763,7 @@ cell_non_canonical_illumina = cell_non_canonical_illumina %>% separate(sample,c(
 
 cell_non_canonical_illumina$pos = as.numeric(as.character(cell_non_canonical_illumina$pos))
 
-cell_non_canonical_illumina = cell_non_canonical_illumina  %>% group_by(line,virus,time,pos,location,class,status,y) %>% summarise(raw_reads=sum(sgRNA_count/(mapped_reads/100000)),n=n()) 
+cell_non_canonical_illumina = cell_non_canonical_illumina  %>% group_by(line,virus,time,pos,location,class,status,y) %>% summarise(raw_reads=sum(sgRNA_count/(mapped_reads/100000)),n=n())
 
 cell_non_canonical_illumina$line = str_replace(cell_non_canonical_illumina$line,"VAT","veroE6\nACE2\nTMPRSS2")
 cell_non_canonical_illumina$line = str_replace(cell_non_canonical_illumina$line,"VA","veroE6\nACE2")
@@ -1811,7 +1811,7 @@ a = ggplot(mapping=aes(x=start,y=y,xend=pos,yend=y))+
     axis.text.y=element_blank(),
     axis.title.y=element_blank(),
     axis.line.y = element_blank(),
-    panel.grid.major = element_blank(), 
+    panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     legend.justification = "center",
     panel.background=element_rect(fill="grey97",color="white"),
@@ -1862,7 +1862,7 @@ b = ggplot(mapping=aes(x=start,y=y,xend=pos,yend=y))+
     axis.text.y=element_blank(),
     axis.title.y=element_blank(),
     axis.line.y = element_blank(),
-    panel.grid.major = element_blank(), 
+    panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     legend.justification = "center",
     panel.background=element_rect(fill="grey97",color="white"),
@@ -1911,7 +1911,7 @@ c = ggplot(mapping=aes(x=start,y=y,xend=pos,yend=y))+
     axis.text.y=element_blank(),
     axis.title.y=element_blank(),
     axis.line.y = element_blank(),
-    panel.grid.major = element_blank(), 
+    panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     legend.justification = "center",
     panel.background=element_rect(fill="grey97",color="white"),
@@ -1937,14 +1937,14 @@ ggarrange(a,b,c,labels=c("A","B","C"),nrow=3,legend="bottom",common.legend = T)
 # Load some data
 #==============================
 
-setwd("summary_data/")
-novel_glas=read.csv("supplementary_file_f10_novel_orf_counts_glasgow.csv")
+
+novel_glas=read.csv("Supplemental_File_S10.csv",comment.char='#')
 novel_glas = novel_glas %>% separate(orf,c("novel","pos"),sep="_")
 novel_glas$pos=as.numeric(as.character(novel_glas$pos))
 novel_glas$location="GLAS"
 novel_glas$y=-0.05
 
-novel_shef=read.csv("supplementary_file_f2_novel_orf_counts.csv")
+novel_shef=read.csv("Supplemental_File_S2.csv",comment.char='#')
 #novel_shef = novel_shef %>% separate(orf,c("novel","pos"),sep="_")
 novel_shef$pos=as.numeric(as.character(novel_shef$pos))
 novel_shef$location="SHEF"
@@ -1989,7 +1989,7 @@ full=ggplot(mapping=aes(x=start,y=y,xend=pos,yend=y))+
     axis.text.y=element_blank(),
     axis.title.y=element_blank(),
     axis.line.y = element_blank(),
-    panel.grid.major = element_blank(), 
+    panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     legend.position = "right",
     legend.justification = "center",
@@ -2264,28 +2264,28 @@ read_plot=ggplot()+
     axis.title.y = element_blank(),
     axis.text.y = element_blank()
   )
-  
+
 
 ggarrange(orf3b,orf3b_hist,zoom_more,orf7b_hist,read_plot,nrow=5,align="hv",labels=c('A','B','C','D','E'),heights=c(1,0.7,1,0.7,0.8))
-  
+
 
 ```
 
 
 
-#### Supplementary Figure S13 - Normalised ECT and Consensus coverage are not Correlated with the Raw amount of Sub-Genomic RNA Detected
+#### Supplementary Figure S13 - Normalized ECT and Consensus coverage are not Correlated with the Raw amount of Sub-Genomic RNA Detected
 
 
 ```{r supp_figure_s13_ect_coverage , fig.width=6, fig.height=6, echo=F,warnings=F,message=F}
 
 
 #==============================
-# Normalised ECT
+# Normalized ECT
 #==============================
 
-setwd("summary_data")
-ct = read.csv("supplementary_file_f9_sample_ect.csv")
-sg = read.csv("supplementary_file_f1_cannonical_orf_counts.csv")
+
+ct = read.csv("Supplemental_File_S9.csv",comment.char='#')
+sg = read.csv("Supplemental_File_S1.csv",comment.char='#')
 
 
 all = merge(sg,ct)
@@ -2298,10 +2298,10 @@ test=cor.test(all$sum, all$E_CT_normalised, method="spearman")
 a = ggplot(all,aes(sum,E_CT_normalised))+
   geom_point(color=navy,alpha=0.5)+
   geom_smooth(method="lm",color=coral)+
-  annotate(geom="text",label=paste("Spearman Rank Correlation\nrho=",round(test$estimate,3),", p=",round(test$p.value,4),sep=""),x=4000,y=1.5,color="#4D4845")+
+  annotate(geom="text",label=paste("Spearman's Rank Correlation\nrho=",round(test$estimate,3),", p=",round(test$p.value,4),sep=""),x=4000,y=1.5,color="#4D4845")+
   ft_theme()+
   scale_x_continuous("Total HQ Raw sgRNA Count")+
-  scale_y_reverse("ECT Normalised to RNASEP",limits=c(2,0))+
+  scale_y_reverse("ECT Normalized to RNASEP",limits=c(2,0))+
   theme(panel.background=element_rect(fill="grey97",color="white"))
 
 
@@ -2310,7 +2310,7 @@ a = ggplot(all,aes(sum,E_CT_normalised))+
 #==============================
 
 
-coverage = read.table("supplementary_file_f17_coverage.csv",sep=",",header=T,fill=T)
+coverage = read.table("Supplemental_File_S17.csv",sep=",",header=T,fill=T)
 sg_cov=merge(sg,coverage)
 
 
@@ -2322,7 +2322,7 @@ test = cor.test(s$coverage,s$sum,method="spearman")
 b = ggplot(s,aes(coverage,sum))+
   geom_point(color=navy,alpha=0.5)+
   geom_smooth(method="lm",color=coral)+
-   annotate(geom="text",label=paste("Spearman Rank Correlation\nrho=",round(test$estimate,3),", p=",round(test$p.value,4),sep=""),x=0.96,y=5000,color="#4D4845")+
+   annotate(geom="text",label=paste("Spearman's Rank Correlation\nrho=",round(test$estimate,3),", p=",round(test$p.value,4),sep=""),x=0.96,y=5000,color="#4D4845")+
   ft_theme()+
   scale_x_continuous("Total HQ Raw sgRNA Count")+
   scale_y_continuous("Coverage")+
@@ -2332,4 +2332,5 @@ ggarrange(a,b,nrow=2,labels=c("A","B"))
 
 
 ```
+
 
